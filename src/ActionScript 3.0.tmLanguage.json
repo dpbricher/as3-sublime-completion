@@ -2,6 +2,137 @@
 	"name" : "ActionScript 3.0",
 	"scopeName" : "source.actionscript.3",
 	"fileTypes" : ["as"],
+    "repository" : {
+        "keywords" : {
+            "patterns" : [
+                {
+                    "name" : "constant.language.actionscript.3",
+                    "match" : "true|false"
+                },
+                {
+                    "name" : "keyword.control.actionscript.3",
+                    "match" : "do|while|for|if|else|break|return"
+                },
+                {
+                    "name" : "storage.type.actionscript.3",
+                    "match" : "var|const|function"
+                },
+                {
+                    "name" : "storage.modifier.actionscript.3",
+                    "match" : "public|protected|private"
+                }
+            ]
+        },
+        "comments" : {
+            "patterns" : [
+                {
+                    "name" : "comment.line.double-slash.actionscript.3",
+                    "match" : "//.*"
+                },
+                {
+                    "name" : "comment.block.actionscript.3",
+                    "begin" : "/\\*",
+                    "end" : "\\*/",
+                }
+            ]
+        },
+        "strings" : {
+            "patterns" : [
+                {
+                    "name" : "string.quoted.double.actionscript.3",
+                    "begin" : "\"",
+                    "end" : "\"",
+                    "patterns" : [
+                        {
+                            "name" : "constant.character.escape.actionscript.3",
+                            "match" : "\\\\."
+                        }
+                    ]
+                },
+                {
+                    "name" : "string.quoted.single.actionscript.3",
+                    "begin" : "'",
+                    "end" : "'",
+                    "patterns" : [
+                        {
+                            "name" : "constant.character.escape.actionscript.3",
+                            "match" : "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "imports" : {
+            "patterns" : [
+                {
+                    "name" : "meta.import.actionscript.3",
+                    "match" : "\\b(import)\\s+[\\w\\.]+(\\b\\w+)",
+                    "captures" : {
+                        "1" : {
+                            "name" : "keyword.storage.actionscript.3"
+                        },
+                        "2" : {
+                            "name" : "support.function.actionscript.3"
+                        }
+                    }
+                }
+            ]
+        },
+        "blocks" : {
+            "patterns" : [
+                {
+                    "include" : "#keywords"
+                },
+                {
+                    "include" : "#comments"
+                },
+                {
+                    "include" : "#strings"
+                },
+                {
+                    "include" : "#imports"
+                },
+                {
+                    "include" : "#meta-support"
+                },
+                {
+                    "name" : "meta.block.actionscript.3",
+                    "begin" : "\\{",
+                    "end" : "\\}"
+                }
+            ]
+        },
+        "meta-support" : {
+            "patterns" : [
+                {
+                    "name" : "meta.support.function.actionscript.3",
+                    "begin" : ":\\s*(\\w+)",
+                    "beginCaptures" : {
+                        "1" : {
+                            "name" : "support.function.actionscript.3",
+                        }
+                    },
+                    "end" : "[ \\n]"
+                },
+                {
+                    "name" : "meta.support.function.actionscript.3",
+                    "begin" : "\\b(new)\\s+",
+                    "beginCaptures" : {
+                        "1" : {
+                            "name" : "keyword.other.actionscript.3",
+                        }
+                    },
+                    "end" : "[\\(\\n\\s;]",
+                    "patterns" : [
+                        {
+                            "name" : "support.function.actionscript.3",
+                            "match" : "\\b\\w+\\b"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
 	"patterns" : [
         {
         	"name" : "meta.package.actionscript.3",
@@ -11,8 +142,14 @@
                     "name" : "storage.type.actionscript.3"
                 }
             },
-        	"end" : "}",
+        	"end" : "\\}",
             "patterns" : [
+                {
+                    "include" : "#comments"
+                },
+                {
+                    "include" : "#imports"
+                },
                 {
                 	"name" : "meta.class.actionscript.3",
                 	"begin" : "\\b(\\w*)\\s*\\b(class)\\s+\\w+",
@@ -24,80 +161,22 @@
                             "name" : "storage.type.actionscript.3"
                         }
                     },
-                    "end" : "}",
+                    "end" : "\\}",
                     "patterns" : [
                         {
-                            "name" : "comment.line.double-slash.actionscript.3",
-                            "match" : "//.*"
+                            "include" : "#keywords"
                         },
                         {
-                            "name" : "comment.block.actionscript.3",
-                            "begin" : "/\\*",
-                            "end" : "\\*/",
+                            "include" : "#comments"
                         },
                         {
-                            "name" : "constant.language.actionscript.3",
-                            "match" : "true|false"
+                            "include" : "#strings"
                         },
                         {
-                            "name" : "keyword.control.actionscript.3",
-                            "match" : "do|while|for|if|else|break|return"
+                            "include" : "#imports"
                         },
                         {
-                            "name" : "storage.type.actionscript.3",
-                            "match" : "var|const|function"
-                        },
-                        {
-                            "name" : "storage.modifier.actionscript.3",
-                            "match" : "public|protected|private"
-                        },
-                        {
-                            "name" : "string.quoted.double.actionscript.3",
-                            "begin" : "\"",
-                            "end" : "\"",
-                            "patterns" : [
-                                {
-                                    "name" : "constant.character.escape.actionscript.3",
-                                    "match" : "\\\\."
-                                }
-                            ]
-                        },
-                        {
-                            "name" : "string.quoted.single.actionscript.3",
-                            "begin" : "'",
-                            "end" : "'",
-                            "patterns" : [
-                                {
-                                    "name" : "constant.character.escape.actionscript.3",
-                                    "match" : "\\\\."
-                                }
-                            ]
-                        },
-                        {
-                            "name" : "meta.support.function.actionscript.3",
-                            "begin" : ":\\s*(\\w+)",
-                            "beginCaptures" : {
-                                "1" : {
-                                    "name" : "keyword.other.actionscript.3",
-                                }
-                            },
-                            "end" : "[ \\n]"
-                        },
-                        {
-                            "name" : "meta.support.function.actionscript.3",
-                            "begin" : "\\b(new)\\s+",
-                            "beginCaptures" : {
-                                "1" : {
-                                    "name" : "keyword.other.actionscript.3",
-                                }
-                            },
-                            "end" : "[\\(\\n\\s;]",
-                            "patterns" : [
-                                {
-                                    "name" : "support.function.actionscript.3",
-                                    "match" : "\\b\\w+\\b"
-                                }
-                            ]
+                            "include" : "#meta-support"
                         }
                     ]
                 }
