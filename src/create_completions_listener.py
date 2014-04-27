@@ -6,9 +6,22 @@ import xml.dom.minidom as Xml
 
 import sublime, sublime_plugin
 
+SETTING_FILE_NAME		= "ActionScript 3-0.sublime-settings"
+FLEX_SDK_PATH_KEY		= "flex_sdk_path"
+
 def read_comp_list():
+	try:
+		aSettings		= sublime.load_settings(SETTING_FILE_NAME)
+		sFlexSdkPath	= aSettings.get(FLEX_SDK_PATH_KEY)
+	except (e):
+		return
+
 	aSourceSwcs		= [
-		"C:/Users/Dean/Downloads/flex_sdk_4.6/frameworks/libs/player/11.1/playerglobal.swc"
+		os.path.realpath(
+			os.path.join(
+				sFlexSdkPath + "/frameworks/libs/player/11.1/playerglobal.swc"
+			)
+		)
 	]
 
 	aRaw			= []
@@ -39,7 +52,7 @@ def createImportComps():
 
 	sImportsCompPath	= os.path.join(
 		sublime.packages_path(),
-		"ActionScript 3",
+		"ActionScript 3-0",
 		"as3-imports.sublime-completions"
 	)
 
@@ -72,7 +85,7 @@ def createTypeComps():
 
 	sTypesCompPath	= os.path.join(
 		sublime.packages_path(),
-		"ActionScript 3",
+		"ActionScript 3-0",
 		"as3-types.sublime-completions"
 	)
 

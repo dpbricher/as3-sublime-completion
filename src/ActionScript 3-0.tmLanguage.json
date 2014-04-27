@@ -120,7 +120,7 @@
                 {
                     "comment" : "function header; maybe improve matching of variable declarations at some point?",
                     "name" : "meta.function.header.actionscript.3",
-                    "begin" : "\\b(function)\\s+([sg]et\\s+)?(\\w*)\\(",
+                    "begin" : "\\b(function)\\s+([sg]et\\s+)?(\\w*)\\s*\\(",
                     "beginCaptures" : {
                         "1" : {
                             "name" : "storage.type.actionscript.3"
