@@ -35,12 +35,7 @@ def createImportComps():
 	# format completions list
 	for sPath in aRaw:
 		if "." in sPath:
-			aCompletions.append(
-				{
-					"trigger" : sPath,
-					"contents" : "import " + sPath + ";"
-				}
-			)
+			aCompletions.append("import " + sPath + ";")
 
 	sImportsCompPath	= os.path.join(
 		sublime.packages_path(),
@@ -119,7 +114,7 @@ def getNamesFromElementList(cElementList):
 
 	return aNames	
 
-class CreateImportCompletions(sublime_plugin.EventListener):
+class CreateCompletionsListener(sublime_plugin.EventListener):
 	def on_load_async(self, view):
 		print("on_load_async")
 		create_comps()
@@ -127,5 +122,3 @@ class CreateImportCompletions(sublime_plugin.EventListener):
 	# def on_post_save_async(self, view):
 	# 	print("on_post_save_async")
 	# 	create_comps()
-
-# create_comps()
