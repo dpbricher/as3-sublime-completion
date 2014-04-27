@@ -78,30 +78,6 @@
                 }
             ]
         },
-        "blocks" : {
-            "patterns" : [
-                {
-                    "include" : "#keywords"
-                },
-                {
-                    "include" : "#comments"
-                },
-                {
-                    "include" : "#strings"
-                },
-                {
-                    "include" : "#imports"
-                },
-                {
-                    "include" : "#meta-support"
-                },
-                {
-                    "name" : "meta.block.actionscript.3",
-                    "begin" : "\\{",
-                    "end" : "\\}"
-                }
-            ]
-        },
         "meta-support" : {
             "patterns" : [
                 {
@@ -131,38 +107,60 @@
                     ]
                 }
             ]
-        }
-    },
-	"patterns" : [
-        {
-        	"name" : "meta.package.actionscript.3",
-        	"begin" : "\\b(package)\\s*\\b[\\w\\.]*",
-            "beginCaptures" : {
-                "1" : {
-                    "name" : "storage.type.actionscript.3"
-                }
-            },
-        	"end" : "\\}",
+        },
+        "package" : {
             "patterns" : [
                 {
-                    "include" : "#comments"
+                    "comment" : "import header",
+                    "name" : "meta.package.header.actionscript.3",
+                    "match" : "\\b(package)\\s*\\b[\\w\\.]*",
+                    "captures" : {
+                        "1" : {
+                            "name" : "storage.type.actionscript.3"
+                        }
+                    }
                 },
                 {
-                    "include" : "#imports"
-                },
+                    "name" : "meta.package.actionscript.3",
+                    "begin" : "\\{",
+                    "end" : "\\}",
+                    "patterns" : [
+                        {
+                            "include" : "#class"
+                        },
+                        {
+                            "include" : "#comments"
+                        },
+                        {
+                            "include" : "#imports"
+                        }
+                    ]
+                }
+            ]
+        },
+        "class" : {
+            "patterns" : [
                 {
-                	"name" : "meta.class.actionscript.3",
-                	"begin" : "\\b(\\w*)\\s*\\b(class)\\s+\\w+",
-                    "beginCaptures" : {
+                    "comment" : "class header",
+                    "name" : "meta.class.header.actionscript.3",
+                    "match" : "\\b(\\w*)\\s*\\b(class)\\s+\\w+",
+                    "captures" : {
                         "1" : {
                             "name" : "storage.modifier.actionscript.3"
                         },
                         "2" : {
                             "name" : "storage.type.actionscript.3"
                         }
-                    },
+                    }
+                },
+                {
+                    "name" : "meta.class.actionscript.3",
+                    "begin" : "\\{",
                     "end" : "\\}",
                     "patterns" : [
+                        {
+                            "include" : "#block"
+                        },
                         {
                             "include" : "#keywords"
                         },
@@ -181,6 +179,40 @@
                     ]
                 }
             ]
+        },
+        "block" : {
+            "patterns" : [
+                {
+                    "name" : "meta.block.actionscript.3",
+                    "begin" : "\\{",
+                    "end" : "\\}",
+                    "patterns" : [
+                        {
+                            "include" : "#block"
+                        },
+                        {
+                            "include" : "#keywords"
+                        },
+                        {
+                            "include" : "#comments"
+                        },
+                        {
+                            "include" : "#strings"
+                        },
+                        {
+                            "include" : "#imports"
+                        },
+                        {
+                            "include" : "#meta-support"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+	"patterns" : [
+        {
+            "include" : "#package"
         }
 	]
 }
