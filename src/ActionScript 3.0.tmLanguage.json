@@ -3,23 +3,60 @@
 	"scopeName" : "source.actionscript.3",
 	"fileTypes" : ["as"],
     "repository" : {
+        "constants" : {
+            "patterns" : [
+                {
+                    "name" : "constant.numeric.actionscript.3",
+                    "match" : "\\b(0x[\\da-fA-F]+|\\d+(\\.\\d+)?)\\b|\\.\\d+\\b"
+                },
+                {
+                    "name" : "constant.language.actionscript.3",
+                    "match" : "\\b(true|false|null|this|NaN|undefined|Number\\.POSITIVE_INFINITY|Number\\.NEGATIVE_INFINITY)\\b|(\\-)?Infinity\\b"
+                }
+            ]
+        },
         "keywords" : {
             "patterns" : [
                 {
-                    "name" : "constant.language.actionscript.3",
-                    "match" : "true|false"
+                    "name" : "keyword.control.actionscript.3",
+                    "match" : "\\b(break|case|continue|default|do|while|else|for|each|if|return|super|switch|throw|try|catch|finally|while|with)\\b"
                 },
                 {
-                    "name" : "keyword.control.actionscript.3",
-                    "match" : "do|while|for|if|else|break|return"
+                    "comment" : "namespaces",
+                    "name" : "keyword.other.actionscript.3",
+                    "match" : "\\b(AS3|flash_proxy|object_proxy)\\b"
                 },
+                {
+                    "name" : "keyword.other.actionscript.3",
+                    "match" : "\\b(default xml namespace|import|include|use namespace)\\b"
+                },
+                {
+                    "name" : "keyword.other.actionscript.3",
+                    "match" : "\\b(extends|get|implements|set)\\b"
+                }
+            ]
+        },
+        "storage" : {
+            "patterns" : [
                 {
                     "name" : "storage.type.actionscript.3",
-                    "match" : "var|const|function"
+                    "match" : "\\b(class|const|function|interface|namespace|package|var)\\b"
                 },
                 {
                     "name" : "storage.modifier.actionscript.3",
-                    "match" : "public|protected|private"
+                    "match" : "\\b(dynamic|final|internal|native|override|private|protected|public|static)\\b"
+                }
+            ]
+        },
+        "operators" : {
+            "patterns" : [
+                {
+                    "name" : "keyword.operator.actionscript.3",
+                    "match" : "[\\+-/\\*%\\=&~\\|^<>!\\[\\],\\?:\\.@]"
+                },
+                {
+                    "name" : "keyword.operator.actionscript.3",
+                    "match" : "\\b(as|delete|in|instanceof|is|new|typeof)\\b"
                 }
             ]
         },
@@ -66,32 +103,62 @@
             "patterns" : [
                 {
                     "name" : "meta.import.actionscript.3",
-                    "match" : "\\b(import)\\s+[\\w\\.]+(\\b\\w+)",
+                    "match" : "\\b(import)\\s+(\\w+\\.)*(\\w+|\\*)",
                     "captures" : {
                         "1" : {
                             "name" : "keyword.storage.actionscript.3"
                         },
-                        "2" : {
+                        "3" : {
                             "name" : "support.function.actionscript.3"
                         }
                     }
                 }
             ]
         },
-        "meta-support" : {
+        "functions" : {
             "patterns" : [
                 {
-                    "name" : "meta.support.function.actionscript.3",
-                    "begin" : ":\\s*(\\w+)",
+                    "comment" : "function header; maybe improve matching of variable declarations at some point?",
+                    "name" : "meta.function.header.actionscript.3",
+                    "begin" : "\\b(function)\\s+([sg]et\\s+)?(\\w*)\\(",
                     "beginCaptures" : {
                         "1" : {
-                            "name" : "support.function.actionscript.3",
+                            "name" : "storage.type.actionscript.3"
+                        },
+                        "2" : {
+                            "name" : "keyword.other.actionscript.3"
+                        },
+                        "3" : {
+                            "name" : "entity.name.function.actionscript.3"
                         }
                     },
-                    "end" : "[ \\n]"
+                    "end" : "\\)",
+                    "patterns" : [
+                        {
+                            "name" : "variable.parameter.actionscript.3",
+                            "match" : "[^\\s,]"
+                        }
+                    ]
+                }
+            ]
+        },
+        "meta-storage" : {
+            "patterns" : [
+                {
+                    "name" : "meta.storage.type.actionscript.3",
+                    "begin" : "(:)\\s*(\\w+\\.)*(\\w+)",
+                    "beginCaptures" : {
+                        "1" : {
+                            "name" : "keyword.operator.actionscript.3"
+                        },
+                        "3" : {
+                            "name" : "storage.type.actionscript.3",
+                        }
+                    },
+                    "end" : "\\s"
                 },
                 {
-                    "name" : "meta.support.function.actionscript.3",
+                    "name" : "meta.storage.type.actionscript.3",
                     "begin" : "\\b(new)\\s+",
                     "beginCaptures" : {
                         "1" : {
@@ -101,22 +168,58 @@
                     "end" : "[\\(\\n\\s;]",
                     "patterns" : [
                         {
-                            "name" : "support.function.actionscript.3",
-                            "match" : "\\b\\w+\\b"
+                            "name" : "meta.storage.type.actionscript.3",
+                            "match" : "((\\w+\\.)*)(\\w+)",
+                            "captures" : {
+                                "3" : {
+                                    "name" : "storage.type.actionscript.3"
+                                }
+                            }
                         }
                     ]
                 }
             ]
         },
-        "package" : {
+        "block-contents" : {
             "patterns" : [
                 {
-                    "comment" : "import header",
+                    "include" : "#meta-storage"
+                },
+                {
+                    "include" : "#constants"
+                },
+                {
+                    "include" : "#keywords"
+                },
+                {
+                    "include" : "#storage"
+                },
+                {
+                    "include" : "#comments"
+                },
+                {
+                    "include" : "#strings"
+                },
+                {
+                    "include" : "#imports"
+                },
+                {
+                    "include" : "#operators"
+                }
+            ]
+        },
+        "packages" : {
+            "patterns" : [
+                {
+                    "comment" : "package header",
                     "name" : "meta.package.header.actionscript.3",
-                    "match" : "\\b(package)\\s*\\b[\\w\\.]*",
+                    "match" : "\\b(package)(\\s+[\\w\\.]+)?",
                     "captures" : {
                         "1" : {
                             "name" : "storage.type.actionscript.3"
+                        },
+                        "2" : {
+                            "name" : "entity.name.type.package.actionscript.3"
                         }
                     }
                 },
@@ -126,7 +229,7 @@
                     "end" : "\\}",
                     "patterns" : [
                         {
-                            "include" : "#class"
+                            "include" : "#classes"
                         },
                         {
                             "include" : "#comments"
@@ -138,18 +241,21 @@
                 }
             ]
         },
-        "class" : {
+        "classes" : {
             "patterns" : [
                 {
                     "comment" : "class header",
                     "name" : "meta.class.header.actionscript.3",
-                    "match" : "\\b(\\w*)\\s*\\b(class)\\s+\\w+",
+                    "match" : "\\b(\\w*)\\s*\\b(class)\\s+(\\w+)",
                     "captures" : {
                         "1" : {
                             "name" : "storage.modifier.actionscript.3"
                         },
                         "2" : {
                             "name" : "storage.type.actionscript.3"
+                        },
+                        "3" : {
+                            "name" : "entity.name.type.class.actionscript.3"
                         }
                     }
                 },
@@ -159,28 +265,16 @@
                     "end" : "\\}",
                     "patterns" : [
                         {
-                            "include" : "#block"
+                            "include" : "#blocks"
                         },
                         {
-                            "include" : "#keywords"
-                        },
-                        {
-                            "include" : "#comments"
-                        },
-                        {
-                            "include" : "#strings"
-                        },
-                        {
-                            "include" : "#imports"
-                        },
-                        {
-                            "include" : "#meta-support"
+                            "include" : "#block-contents"
                         }
                     ]
                 }
             ]
         },
-        "block" : {
+        "blocks" : {
             "patterns" : [
                 {
                     "name" : "meta.block.actionscript.3",
@@ -188,31 +282,22 @@
                     "end" : "\\}",
                     "patterns" : [
                         {
-                            "include" : "#block"
+                            "include" : "#blocks"
                         },
                         {
-                            "include" : "#keywords"
-                        },
-                        {
-                            "include" : "#comments"
-                        },
-                        {
-                            "include" : "#strings"
-                        },
-                        {
-                            "include" : "#imports"
-                        },
-                        {
-                            "include" : "#meta-support"
+                            "include" : "#block-contents"
                         }
                     ]
+                },
+                {
+                    "include" : "#functions"
                 }
             ]
         }
     },
 	"patterns" : [
         {
-            "include" : "#package"
+            "include" : "#packages"
         }
 	]
 }
