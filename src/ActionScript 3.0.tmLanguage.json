@@ -19,7 +19,7 @@
             "patterns" : [
                 {
                     "name" : "keyword.control.actionscript.3",
-                    "match" : "\\b(break|case|continue|default|do|while|else|for|each|if|return|super|switch|throw|try|catch|finally|while|with)\\b"
+                    "match" : "\\b(break|case|continue|default|do|while|else|for( each)?|if|return|super|switch|throw|try|catch|finally|while|with)\\b"
                 },
                 {
                     "comment" : "namespaces",
@@ -52,7 +52,7 @@
             "patterns" : [
                 {
                     "name" : "keyword.operator.actionscript.3",
-                    "match" : "[\\+-/\\*%\\=&~\\|^<>!\\[\\],\\?:\\.@]"
+                    "match" : "[\\+-/\\*%\\=&~\\|^<>!,\\?:\\.@]"
                 },
                 {
                     "name" : "keyword.operator.actionscript.3",
@@ -135,8 +135,17 @@
                     "end" : "\\)",
                     "patterns" : [
                         {
+                            "include" : "#meta-storage"
+                        },
+                        {
+                            "include" : "#constants"
+                        },
+                        {
+                            "include" : "#operators"
+                        },
+                        {
                             "name" : "variable.parameter.actionscript.3",
-                            "match" : "[^\\s,]"
+                            "match" : "\\b\\w+\\b"
                         }
                     ]
                 }
@@ -146,37 +155,27 @@
             "patterns" : [
                 {
                     "name" : "meta.storage.type.actionscript.3",
-                    "begin" : "(:)\\s*(\\w+\\.)*(\\w+)",
-                    "beginCaptures" : {
+                    "match" : "(:)\\s*(\\w+\\.)*(\\w+)\\b",
+                    "captures" : {
                         "1" : {
                             "name" : "keyword.operator.actionscript.3"
                         },
                         "3" : {
                             "name" : "storage.type.actionscript.3",
                         }
-                    },
-                    "end" : "\\s"
+                    }
                 },
                 {
                     "name" : "meta.storage.type.actionscript.3",
-                    "begin" : "\\b(new)\\s+",
-                    "beginCaptures" : {
+                    "match" : "\\b(new)\\s+((\\w+\\.)*)(\\w+)\\b",
+                    "captures" : {
                         "1" : {
                             "name" : "keyword.other.actionscript.3",
+                        },
+                        "4" : {
+                            "name" : "storage.type.actionscript.3",
                         }
-                    },
-                    "end" : "[\\(\\n\\s;]",
-                    "patterns" : [
-                        {
-                            "name" : "meta.storage.type.actionscript.3",
-                            "match" : "((\\w+\\.)*)(\\w+)",
-                            "captures" : {
-                                "3" : {
-                                    "name" : "storage.type.actionscript.3"
-                                }
-                            }
-                        }
-                    ]
+                    }
                 }
             ]
         },
@@ -244,9 +243,9 @@
         "classes" : {
             "patterns" : [
                 {
-                    "comment" : "class header",
+                    "comment" : "class header; currently will only capture the first declared interface",
                     "name" : "meta.class.header.actionscript.3",
-                    "match" : "\\b(\\w*)\\s*\\b(class)\\s+(\\w+)",
+                    "match" : "\\b(\\w*)\\s*\\b(class)\\s+(\\w+)(\\s+(extends)\\s+(\\w+\\.)*(\\w+))?(\\s+(implements)\\s+(\\w+\\.)*(\\w+))?",
                     "captures" : {
                         "1" : {
                             "name" : "storage.modifier.actionscript.3"
@@ -256,6 +255,18 @@
                         },
                         "3" : {
                             "name" : "entity.name.type.class.actionscript.3"
+                        },
+                        "5" : {
+                            "name" : "keyword.other.actionscript.3"
+                        },
+                        "7" : {
+                            "name" : "entity.other.inherited-class.actionscript.3"
+                        },
+                        "9" : {
+                            "name" : "keyword.other.actionscript.3"
+                        },
+                        "11" : {
+                            "name" : "entity.other.inherited-class.actionscript.3"
                         }
                     }
                 },
