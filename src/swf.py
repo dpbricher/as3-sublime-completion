@@ -1,6 +1,5 @@
 import io
 import re
-import tempfile
 import subprocess
 import xml.dom.minidom as Xml
 
