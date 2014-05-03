@@ -13,37 +13,39 @@ import subprocess
 
 import sublime, sublime_plugin
 
-class CompletionsListenerAs3(sublime_plugin.EventListener):
-    SETTING_FILE_NAME       = "ActionScript 3-0.sublime-settings"
-    FLEX_SDK_PATH_KEY       = "flex_sdk_path"
-    FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
+SETTING_FILE_NAME       = "ActionScript 3-0.sublime-settings"
+FLEX_SDK_PATH_KEY       = "flex_sdk_path"
+FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
 
+gaImports   = []
+gaTypes     = []
+
+def plugin_loaded():
+    try:
+        aSettings       = sublime.load_settings(SETTING_FILE_NAME)
+        sFlexSdkPath    = aSettings.get(FLEX_SDK_PATH_KEY)
+    except (e):
+        return
+
+    aSourceSwcs     = [
+        os.path.realpath(
+            os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, "11.1/playerglobal.swc")
+        )
+    ]
+
+    global gaImports, gaTypes
+
+    for sPath in aSourceSwcs:
+        cReader     = SwcReader(sFlexSdkPath)
+        cReader.readSwc(sPath)
+        cReader.parseData()
+
+        gaImports   = [(s,) for s in cReader.getImports() if s not in gaImports]
+        gaTypes     = cReader.getTypes()
+
+class CompletionsListenerAs3(sublime_plugin.EventListener):
     SCOPE_IMPORT            = "source.actionscript.3 meta.package.actionscript.3 - meta.class.actionscript.3"
     SCOPE_TYPE              = "source.actionscript.3 meta.class.actionscript.3 meta.storage.type.actionscript.3"
-
-    def __init__(self):
-        self.aImports       = []
-        self.aTypes         = []
-
-        try:
-            aSettings       = sublime.load_settings(self.SETTING_FILE_NAME)
-            sFlexSdkPath    = aSettings.get(self.FLEX_SDK_PATH_KEY)
-        except (e):
-            return
-
-        aSourceSwcs     = [
-            os.path.realpath(
-                os.path.join(sFlexSdkPath, self.FLEX_GLOBAL_SWC_DIR, "11.1/playerglobal.swc")
-            )
-        ]
-
-        for sPath in aSourceSwcs:
-            cReader     = SwcReader(sFlexSdkPath)
-            cReader.readSwc(sPath)
-            cReader.parseData()
-
-            self.aImports   = [(s,) for s in cReader.getImports() if s not in self.aImports]
-            self.aTypes     = cReader.getTypes()
 
     def on_query_completions(self, view, prefix, locations):
         aAutoList   = None
@@ -53,7 +55,8 @@ class CompletionsListenerAs3(sublime_plugin.EventListener):
             sCurrentScope   = view.scope_name(iCurrentPoint)
 
             if view.score_selector(iCurrentPoint, self.SCOPE_IMPORT) > 0:
-                aAutoList   = self.aImports
+                global gaImports
+                aAutoList   = gaImports
 
             # this is the scope that we want to target:
             #   meta.package.actionscript.3 meta.class.actionscript.3 meta.storage.type.actionscript.3
@@ -63,7 +66,8 @@ class CompletionsListenerAs3(sublime_plugin.EventListener):
 
                 for cRegion in aMatches:
                     if cRegion.contains(iCurrentPoint):
-                        aAutoList   = self.aTypes
+                        global gaTypes
+                        aAutoList   = gaTypes
                         break
 
         return aAutoList
