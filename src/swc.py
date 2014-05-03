@@ -1,71 +1,37 @@
-import re
+import swf
+import os.path
 import zipfile
+import tempfile
 import xml.dom.minidom as Xml
 #
-# Class for reading and parsing swc files; Right now only reads the catalog.xml
+# Class for reading and parsing swc files
 #
-class SwcReader:
-	def __init__(self):
+class SwcReader(swf.SwfReader):
+	CATALOG_NAME	= "catalog.xml"
+	LIBRARY_NAME	= "library.swf"
+
+	def __init__(self, sFlexSdkPath=""):
+		super().__init__(sFlexSdkPath)
+
 		# catalog xml
 		self.cCatalogXml	= 0
 
-		# definition paths lists
-		self.aDefs			= ["test"]
-
-		# imports paths list
-		self.aImports		= []
-
-		# shortened variable types list
-		self.aTypes			= []
-
 	def readSwc(self, sSwcPath):
 		cFile				= zipfile.ZipFile(sSwcPath, "r")
-		sCatalog			= cFile.read("catalog.xml")
+		# read catalog file
+		sCatalog			= cFile.read(self.CATALOG_NAME)
+		# extract library
+		cTempDir			= tempfile.TemporaryDirectory()
+		cFile.extract(self.LIBRARY_NAME, path=cTempDir.name)
+		# read library
+		self.readSwf(os.path.join(cTempDir.name, self.LIBRARY_NAME))
+
+		cTempDir.cleanup()
+		cTempDir			= None
+
 		cFile.close()
 
-		# xml parsing to find class definitions
 		self.cCatalogXml	= Xml.parseString(sCatalog)
 
-		self.parseImports()
-
-		self.createImportsList()
-		self.createTypesList()
-
-	def parseImports(self):
-		cNativeList		= self.cCatalogXml.getElementsByTagName("component")
-		cImportList		= self.cCatalogXml.getElementsByTagName("script")
-
-		aImports		= []
-		aNatives		= []
-
-		for cElement in cImportList:
-			aImports.append(cElement.getAttribute("name"))
-
-		for cElement in cNativeList:
-			aNatives.append(cElement.getAttribute("name"))
-
-		aImports		= [s.replace("/", ".") for s in aImports]
-
-		aJoined			= [x for x in aImports if x not in aNatives]
-		aJoined			+= aNatives
-
-		self.aDefs		= aJoined
-
-	def createImportsList(self):
-		self.aImports	= []
-
-		for sPath in self.aDefs:
-			self.aImports.append("import " + sPath + ";")
-
-	def createTypesList(self):
-		for sPath in self.aDefs:
-			self.aTypes.append({
-				"trigger" : sPath,
-				"contents" : re.sub(r".*\.", "", sPath)
-			})
-
-	def getImports(self):
-		return self.aImports
-	
-	def getTypes(self):
-		return self.aTypes
+	def parseData(self):
+		super().parseData()
