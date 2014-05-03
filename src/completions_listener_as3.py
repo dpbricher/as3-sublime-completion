@@ -15,25 +15,59 @@ import sublime, sublime_plugin
 
 SETTING_FILE_NAME       = "ActionScript 3-0.sublime-settings"
 FLEX_SDK_PATH_KEY       = "flex_sdk_path"
+BUILD_CONFIG_PATH_KEY   = "build_config_path"
+
 FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
 
-gaImports   = []
-gaTypes     = []
+gaImports   = None
+gaTypes     = None
+
+gsBuildXml  = None
 
 def plugin_loaded():
+    cPluginSettings = sublime.load_settings(SETTING_FILE_NAME)
+    cProjSettings   = sublime.active_window().project_data()
+
+    global gsBuildXml
+    gsBuildXml      = cProjSettings.get(
+        cPluginSettings.get(BUILD_CONFIG_PATH_KEY)
+    )
+
+    loadCompletions()
+
+def loadCompletions():
     try:
-        aSettings       = sublime.load_settings(SETTING_FILE_NAME)
-        sFlexSdkPath    = aSettings.get(FLEX_SDK_PATH_KEY)
+        cSettings       = sublime.load_settings(SETTING_FILE_NAME)
+        sFlexSdkPath    = cSettings.get(FLEX_SDK_PATH_KEY)
     except (e):
         return
 
+    sFlashVersion       = None
+
+    if gsBuildXml:
+        # get flash version
+        # find additional src paths
+        pass
+    
+    if sFlashVersion == None:
+        # set global swc to latest available
+        aAllVersions    = os.listdir(
+            os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
+        )
+        aAllVersions.sort()
+
+        sFlashVersion   = aAllVersions.pop()
+
     aSourceSwcs     = [
         os.path.realpath(
-            os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, "11.1/playerglobal.swc")
+            os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
         )
     ]
 
     global gaImports, gaTypes
+
+    gaImports       = []
+    gaTypes         = []
 
     for sPath in aSourceSwcs:
         cReader     = SwcReader(sFlexSdkPath)
@@ -52,7 +86,6 @@ class CompletionsListenerAs3(sublime_plugin.EventListener):
 
         if len(locations) == 1:
             iCurrentPoint   = locations[0];
-            sCurrentScope   = view.scope_name(iCurrentPoint)
 
             if view.score_selector(iCurrentPoint, self.SCOPE_IMPORT) > 0:
                 global gaImports

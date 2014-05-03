@@ -1,3 +1,4 @@
 {
-	"flex_sdk_path" : "C:/Users/Dean/Downloads/flex_sdk_4.6"
+	"flex_sdk_path" : "C:/Users/Dean/Downloads/flex_sdk_4.6",
+	"build_config_path" : "build-config.xml"
 }
