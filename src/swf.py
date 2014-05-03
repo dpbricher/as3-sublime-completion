@@ -73,14 +73,13 @@ class SwfReader:
 		self.aDefs		= [s.replace("/", ".") for s in aNames]
 
 	def createImportsList(self):
-		self.aImports	= [("import " + s + ";") for s in self.aDefs if "." in s]
+		self.aImports	= [("import " + s + ";",) for s in self.aDefs if "." in s]
 
 	def createTypesList(self):
 		for sPath in self.aDefs:
-			self.aTypes.append({
-				"trigger" : sPath,
-				"contents" : re.sub(r".*\.", "", sPath)
-			})
+			self.aTypes.append(
+				(sPath, re.sub(r".*\.", "", sPath))
+			)
 
 	def getImports(self):
 		return self.aImports
