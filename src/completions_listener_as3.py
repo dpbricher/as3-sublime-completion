@@ -26,10 +26,10 @@ gsBuildXml  = None
 
 def plugin_loaded():
     cPluginSettings = sublime.load_settings(SETTING_FILE_NAME)
-    cProjSettings   = sublime.active_window().project_data()
 
     global gsBuildXml
-    gsBuildXml      = cProjSettings.get(
+    gsBuildXml      = join(
+        os.path.dirname(sublime.active_window().project_file_name()),
         cPluginSettings.get(BUILD_CONFIG_PATH_KEY)
     )
 
@@ -42,11 +42,21 @@ def loadCompletions():
     except (e):
         return
 
+    aSourceSwcs         = []
+
     sFlashVersion       = None
 
     if gsBuildXml:
+        cBuildXml       = Xml.parse(gsBuildXml)
+
         # get flash version
+        cVersionNodes   = cBuildXml.getElementsByTagName("target-player")
+        
+        if cVersionNodes != None:
+            sFlashVersion   = cVersionNodes[0].firstChild.data
+            
         # find additional src paths
+        # cSourcePaths    = cBuildXml
         pass
     
     if sFlashVersion == None:
@@ -58,11 +68,11 @@ def loadCompletions():
 
         sFlashVersion   = aAllVersions.pop()
 
-    aSourceSwcs     = [
+    aSourceSwcs.append(
         os.path.realpath(
             os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
         )
-    ]
+    )
 
     global gaImports, gaTypes
 
