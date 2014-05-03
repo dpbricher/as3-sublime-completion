@@ -32,7 +32,7 @@
                 },
                 {
                     "name" : "keyword.other.actionscript.3",
-                    "match" : "\\b(extends|get|implements|set)\\b"
+                    "match" : "\\b(extends|implements)\\b"
                 }
             ]
         },
@@ -52,7 +52,7 @@
             "patterns" : [
                 {
                     "name" : "keyword.operator.actionscript.3",
-                    "match" : "[\\+-/\\*%\\=&~\\|^<>!,\\?:\\.@]"
+                    "match" : "[\\+-/\\*%\\=&~\\|^<>!,\\?:\\.@;]"
                 },
                 {
                     "name" : "keyword.operator.actionscript.3",
@@ -103,13 +103,16 @@
             "patterns" : [
                 {
                     "name" : "meta.import.actionscript.3",
-                    "match" : "\\b(import)\\s+(\\w+\\.)*(\\w+|\\*)",
+                    "match" : "\\b(import)\\s+(\\w+\\.)*(\\w+|\\*)(;)?",
                     "captures" : {
                         "1" : {
                             "name" : "keyword.storage.actionscript.3"
                         },
                         "3" : {
                             "name" : "support.function.actionscript.3"
+                        },
+                        "4" : {
+                            "name" : "keyword.operator.actionscript.3"
                         }
                     }
                 }
@@ -120,28 +123,42 @@
                 {
                     "comment" : "function header; maybe improve matching of variable declarations at some point?",
                     "name" : "meta.function.header.actionscript.3",
-                    "begin" : "\\b(function)\\s+([sg]et\\s+)?(\\w*)\\s*\\(",
+                    "begin" : "\\b(function)(\\s+([sg]et\\s+)?(\\w*))?\\s*\\(",
                     "beginCaptures" : {
                         "1" : {
                             "name" : "storage.type.actionscript.3"
                         },
-                        "2" : {
+                        "3" : {
                             "name" : "keyword.other.actionscript.3"
                         },
-                        "3" : {
+                        "4" : {
                             "name" : "entity.name.function.actionscript.3"
                         }
                     },
-                    "end" : "\\)",
+                    "end" : "\\)((:)\\s*(\\w+|\\*)\\b)?",
+                    "endCaptures" : {
+                        "2" : {
+                            "name" : "keyword.operator.actionscript.3",
+                        },
+                        "3" : {
+                            "name" : "storage.type.actionscript.3"
+                        }
+                    },
                     "patterns" : [
                         {
-                            "include" : "#meta-storage"
+                            "include" : "#meta-storage-var-type"
                         },
                         {
                             "include" : "#constants"
                         },
                         {
                             "include" : "#operators"
+                        },
+                        {
+                            "include" : "#comments"
+                        },
+                        {
+                            "include" : "#strings"
                         },
                         {
                             "name" : "variable.parameter.actionscript.3",
@@ -151,7 +168,7 @@
                 }
             ]
         },
-        "meta-storage" : {
+        "meta-storage-var-type" : {
             "patterns" : [
                 {
                     "name" : "meta.storage.type.actionscript.3",
@@ -164,7 +181,11 @@
                             "name" : "storage.type.actionscript.3",
                         }
                     }
-                },
+                }
+            ]
+        },
+        "meta-storage-new" : {
+            "patterns" : [
                 {
                     "name" : "meta.storage.type.actionscript.3",
                     "match" : "\\b(new)\\s+((\\w+\\.)*)(\\w+)\\b",
@@ -179,10 +200,51 @@
                 }
             ]
         },
+        "var-declarations" : {
+            "comment" : "using this to catch meta-storage-var-type, cos otherwise that will also catch literal object declarations. also ending this with a ';' since otherwise I'm thinking it will be a ballache to catch, even though it is not *technically* required to end the line.... complaints on a postcard please.",
+            "begin" : "\\b(var|const)\\b",
+            "beginCaptures" : {
+                "0" : {
+                    "name" : "storage.type.actionscript.3"
+                }
+            },
+            "end" : ";|\\bin\\b",
+            "endCaptures" : {
+                "0" : {
+                    "name" : "keyword.operator.actionscript.3"
+                }
+            },
+            "patterns" : [
+                {
+                    "include" : "#meta-storage-var-type"
+                },
+                {
+                    "include" : "#meta-storage-new"
+                },
+                {
+                    "include" : "#blocks"
+                },
+                {
+                    "include" : "#constants"
+                },
+                {
+                    "include" : "#comments"
+                },
+                {
+                    "include" : "#strings"
+                },
+                {
+                    "include" : "#operators"
+                }
+            ]
+        },
         "block-contents" : {
             "patterns" : [
                 {
-                    "include" : "#meta-storage"
+                    "include" : "#meta-storage-new"
+                },
+                {
+                    "include" : "#var-declarations"
                 },
                 {
                     "include" : "#constants"
