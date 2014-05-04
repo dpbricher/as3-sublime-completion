@@ -20,14 +20,8 @@ class SwfReader:
 		# list of abc defs
 		self.aAbcs			= []
 
-		# definition paths lists
-		self.aDefs			= []
-
-		# imports paths list
-		self.aImports		= []
-
-		# shortened variable types list
-		self.aTypes			= []
+		# fully qualified class names list, . separated
+		self.aFqClassNames  = None
 
 	# basic dump of swf
 	def readSwf(self, sSwfPath):
@@ -58,35 +52,17 @@ class SwfReader:
 			sNextLine		= cLibraryDump.readline()
 
 	# call this to parse read swf data and populate info vars
-	def parseData(self):
-		self.parseImports()
-
-		self.createImportsList()
-		self.createTypesList()
-
-	def parseImports(self):
-		aNames			= []
+	def parseData(self):		
+		aNames				= []
 
 		for cAbc in self.cLibraryXml.getElementsByTagName(self.ABC_TAG_NAME):
 			aNames.append(cAbc.getAttribute("name"))
 
-		self.aDefs		= [s.replace("/", ".") for s in aNames]
+		self.aFqClassNames	= [s.replace("/", ".") for s in aNames]
 
-	def createImportsList(self):
-		self.aImports	= [("import " + s + ";",) for s in self.aDefs if "." in s]
-
-	def createTypesList(self):
-		for sPath in self.aDefs:
-			self.aTypes.append(
-				(sPath, re.sub(r".*\.", "", sPath))
-			)
-
-	def getImports(self):
-		return self.aImports
+	def getFqClassNames(self):
+		return self.aFqClassNames
 	
-	def getTypes(self):
-		return self.aTypes
-
 	# takes the name of a flex sdk bin tool along with a list of arguments
 	# runs the tool, passing the listed arguments
 	# returns the output
