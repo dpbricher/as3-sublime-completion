@@ -4,6 +4,8 @@ class SourceDirAs3Reader():
 	AS_EXT			= os.extsep + "as"
 	AS_EXT_LEN		= len(AS_EXT)
 
+	SWC_EXT			= os.extsep + "swc"
+
 	def __init__(self):
 		self.sSourceDir		= None
 		self.aSourceFiles	= None
@@ -17,15 +19,14 @@ class SourceDirAs3Reader():
 		self.sSourceDir		= sDirPath
 
 		self.aSourceFiles	= []
-		self.aSourceSwcs	= []
 
+		# find all ActionScript source files within source dir
 		for cInfo in os.walk(self.sSourceDir, True, None, True):
 			for sFile in cInfo[2]:
 				if sFile.endswith(self.AS_EXT):
 					self.aSourceFiles.append( os.path.join(cInfo[0], sFile) )
 
-		# for s in self.aSourceFiles:
-			# print("found source file : " + s)
+		self.aSourceSwcs	= [os.path.join(self.sSourceDir, s) for s in os.listdir(self.sSourceDir) if s.endswith(self.SWC_EXT)]
 
 	def parseData(self):
         self.aFqClassNames  = []
@@ -36,3 +37,9 @@ class SourceDirAs3Reader():
             sPath   = sPath.replace(os.sep, ".")
 
             self.aFqClassNames.append(sPath)
+
+    def getFqClassNames(self):
+        return self.aFqClassNames
+
+    def getSourceSwcs(self):
+        return self.aSourceSwcs

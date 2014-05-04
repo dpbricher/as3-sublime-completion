@@ -83,8 +83,18 @@ def loadCompletions():
 
     cSwcReader      = SwcReader(sFlexSdkPath)
     cDirReader      = SourceDirAs3Reader()
-    
+
     cFormatter      = CompletionFormatter()
+    
+    for sPath in aSourceDirs:
+        cDirReader.readDir(sPath)
+        cDirReader.parseData()
+
+        # add any swcs found within source dirs to the swc list
+        aSourceSwcs += cDirReader.getSourceSwcs()
+
+        gaImports   += cFormatter.createImportList(cDirReader.getFqClassNames())
+        gaTypes     += cFormatter.createTypeList(cDirReader.getFqClassNames())
 
     for sPath in aSourceSwcs:
         cSwcReader.readSwc(sPath)
@@ -92,13 +102,6 @@ def loadCompletions():
 
         gaImports   += cFormatter.createImportList(cSwcReader.getFqClassNames())
         gaTypes     += cFormatter.createTypeList(cSwcReader.getFqClassNames())
-    
-    for sPath in aSourceDirs:
-        cDirReader.readDir(sPath)
-        cDirReader.parseData()
-
-        gaImports   += cFormatter.createImportList(cDirReader.getFqClassNames())
-        gaTypes     += cFormatter.createTypeList(cDirReader.getFqClassNames())
 
 class CompletionsListenerAs3(sublime_plugin.EventListener):
     SCOPE_IMPORT            = "source.actionscript.3 meta.package.actionscript.3 - meta.class.actionscript.3"
@@ -296,6 +299,8 @@ class SourceDirAs3Reader():
     AS_EXT          = os.extsep + "as"
     AS_EXT_LEN      = len(AS_EXT)
 
+    SWC_EXT         = os.extsep + "swc"
+
     def __init__(self):
         self.sSourceDir     = None
         self.aSourceFiles   = None
@@ -309,12 +314,13 @@ class SourceDirAs3Reader():
         self.sSourceDir     = sDirPath
 
         self.aSourceFiles   = []
-        self.aSourceSwcs    = []
 
         for cInfo in os.walk(self.sSourceDir, True, None, True):
             for sFile in cInfo[2]:
                 if sFile.endswith(self.AS_EXT):
                     self.aSourceFiles.append( os.path.join(cInfo[0], sFile) )
+
+        self.aSourceSwcs    = [os.path.join(self.sSourceDir, s) for s in os.listdir(self.sSourceDir) if s.endswith(self.SWC_EXT)]
 
     def parseData(self):
         self.aFqClassNames  = []
@@ -328,6 +334,9 @@ class SourceDirAs3Reader():
 
     def getFqClassNames(self):
         return self.aFqClassNames
+
+    def getSourceSwcs(self):
+        return self.aSourceSwcs
 
 class CompletionFormatter:
     def __init__(self):
