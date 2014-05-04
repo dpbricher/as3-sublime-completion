@@ -42,24 +42,19 @@ def loadCompletions():
     except (e):
         return
 
+    aSourceDirs         = []
     aSourceSwcs         = []
 
-    sFlashVersion       = None
+    sFlashVersion       = ""
 
     if gsBuildXml:
-        cBuildXml       = Xml.parse(gsBuildXml)
+        cConfigReader   = FlexConfigParser()
+        cConfigReader.readConfig(gsBuildXml)
+        cConfigReader.parseData()
 
-        # get flash version
-        cVersionNodes   = cBuildXml.getElementsByTagName("target-player")
-        
-        if cVersionNodes != None:
-            sFlashVersion   = cVersionNodes[0].firstChild.data
-            
-        # find additional src paths
-        # cSourcePaths    = cBuildXml
-        pass
-    
-    if sFlashVersion == None:
+        sFlashVersion   = cConfigReader.getFlashVersion()
+
+    if sFlashVersion != "":
         # set global swc to latest available
         aAllVersions    = os.listdir(
             os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
@@ -68,24 +63,45 @@ def loadCompletions():
 
         sFlashVersion   = aAllVersions.pop()
 
-    aSourceSwcs.append(
-        os.path.realpath(
+    if cConfigReader != None:
+        aSourceDirs     = cConfigReader.getSourceDirs()
+        aSourceSwcs     = cConfigReader.getSourceSwcs()
+    
+    # add global swc source path so long as config does not have source-path append="false"
+    if cConfigReader == None or cConfigReader.getAppendSourceFlag():        
+        sGlobalSwcPath      = os.path.realpath(
             os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
         )
-    )
+
+        if sGlobalSwcPath not in aSourceSwcs:
+            aSourceSwcs.append(sGlobalSwcPath)
 
     global gaImports, gaTypes
 
     gaImports       = []
     gaTypes         = []
 
+    cFormatter      = CompletionFormatter()
+
     for sPath in aSourceSwcs:
         cReader     = SwcReader(sFlexSdkPath)
         cReader.readSwc(sPath)
         cReader.parseData()
 
-        gaImports   = [(s,) for s in cReader.getImports() if s not in gaImports]
-        gaTypes     = cReader.getTypes()
+        gaImports   += [(s,) for s in cReader.getImports() if s not in gaImports]
+        gaTypes     += cReader.getTypes()
+
+    cDirReader  = SourceDirAs3Reader()
+    
+    for sPath in aSourceDirs:
+        cDirReader.readDir(sPath)
+        cDirReader.parseData()
+
+        aImports    = cFormatter.createImportList(cDirReader.getFqClassNames())
+        aTypes      = cFormatter.createTypeList(cDirReader.getFqClassNames())
+
+        gaImports   += aImports
+        gaTypes     += aTypes
 
 class CompletionsListenerAs3(sublime_plugin.EventListener):
     SCOPE_IMPORT            = "source.actionscript.3 meta.package.actionscript.3 - meta.class.actionscript.3"
@@ -247,3 +263,113 @@ class SwcReader(SwfReader):
 
     def parseData(self):
         super().parseData()
+
+class FlexConfigParser:
+    def __init__(self):
+        self.cConfigXml     = None
+
+        self.aSourceDirs    = None
+        self.aSourceSwcs    = None
+
+        self.sFlashVersion  = None
+
+    def readConfig(self, sConfigPath):
+        self.cConfigXml = Xml.parse(sConfigPath)
+
+    def parseData(self):
+        # (re)initialise vars
+        self.aSourceDirs    = []
+        self.aSourceSwcs    = []
+
+        self.sFlashVersion  = ""
+
+        # get flash version
+        cVersionNodes   = self.cConfigXml.getElementsByTagName("target-player")
+        
+        if cVersionNodes != None:
+            self.sFlashVersion  = cVersionNodes[0].firstChild.data
+            
+        # find additional src paths
+        cSourcePaths    = self.cConfigXml.getElementsByTagName("source-path")
+
+        if cSourcePaths != None:
+            cSourcePaths    = cSourcePaths[0].getElementsByTagName("path-element")
+
+            for cPath in cSourcePaths:
+                self.aSourceDirs.append(cPath.firstChild.data)
+
+        # need to check the different ways of inluding sources and amnd this as appropriate
+        cSourceSwcs     = self.cConfigXml.getElementsByTagName("include-libraries")
+
+        if cSourceSwcs != None:
+            cSourceSwcs     = cSourceSwcs[0].getElementsByTagName("library")
+
+            for cLibrary in cSourceSwcs:
+                self.aSourceSwcs.append(cLibrary.firstChild.data)
+
+    def getFlashVersion(self):
+        return self.sFlashVersion
+
+    def getSourceDirs(self):
+        return self.aSourceDirs
+
+    def getSourceSwcs(self):
+        return self.aSourceSwcs
+
+    def getAppendSourceFlag(self):
+        True
+
+class SourceDirAs3Reader():
+    AS_EXT          = os.extsep + "as"
+    AS_EXT_LEN      = len(AS_EXT)
+
+    def __init__(self):
+        self.sSourceDir     = None
+        self.aSourceFiles   = None
+        self.aSourceSwcs    = None
+
+        self.aFqClassNames  = None
+
+    def readDir(self, sDirPath):
+        aPaths  = []
+
+        self.sSourceDir     = sDirPath
+
+        self.aSourceFiles   = []
+        self.aSourceSwcs    = []
+
+        for cInfo in os.walk(self.sSourceDir, True, None, True):
+            for sFile in cInfo[2]:
+                if sFile.endswith(self.AS_EXT):
+                    self.aSourceFiles.append( os.path.join(cInfo[0], sFile) )
+
+    def parseData(self):
+        self.aFqClassNames  = []
+
+        for sPath in self.aSourceFiles:
+            sPath   = os.path.relpath(sPath, self.sSourceDir)
+            sPath   = sPath[:-self.AS_EXT_LEN]
+            sPath   = sPath.replace(os.sep, ".")
+
+            self.aFqClassNames.append(sPath)
+
+    def getFqClassNames(self):
+        return self.aFqClassNames
+
+class CompletionFormatter:
+    def __init__(self):
+        pass
+
+    def createImportList(self, aFqClassNames):
+        aImports    = [
+            ("import " + s.replace("/", ".") + ";",) for s in aFqClassNames
+        ]
+
+        return aImports
+
+    def createTypeList(self, aFqClassNames):
+        aTypes  = [
+            ( s, re.sub(r".*\.", "", s) ) for s in aFqClassNames
+        ]
+
+        return aTypes
