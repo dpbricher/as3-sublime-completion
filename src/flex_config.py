@@ -21,10 +21,10 @@ class FlexConfigParser:
 
 		# get flash version
 		cVersionNodes   = self.cConfigXml.getElementsByTagName("target-player")
-		
+
 		if cVersionNodes != None:
 		    self.sFlashVersion	= cVersionNodes[0].firstChild.data
-		    
+
 		# find additional src paths
 		cSourcePaths    = self.cConfigXml.getElementsByTagName("source-path")
 
@@ -54,4 +54,4 @@ class FlexConfigParser:
 
 	# TODO: implement this :o
 	def getAppendSourceFlag(self):
-		True
+		return True
