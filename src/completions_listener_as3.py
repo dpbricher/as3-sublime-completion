@@ -19,19 +19,21 @@ BUILD_CONFIG_PATH_KEY   = "build_config_path"
 
 FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
 
+# map of Completion instances for each window; keys are that window's id()
 gcCompletionsMap        = {}
 
 gsBuildXml              = None
 
 
 def plugin_loaded():
-    checkCompletions()
+    checkCompletions(sublime.active_window())
 
-def checkCompletions(cWindow = None):
+def checkCompletions(cWindow):
+    if gcCompletionsMap.get(cWindow.id()) is None:
+        reloadCompletions(cWindow)
+
+def reloadCompletions(cWindow):
     cPluginSettings = sublime.load_settings(SETTING_FILE_NAME)
-
-    if cWindow is None:
-        cWindow     = sublime.active_window()
 
     global gsBuildXml
     gsBuildXml      = join(
@@ -61,7 +63,7 @@ def loadCompletions(cWindow):
 
         sFlashVersion   = cConfigReader.getFlashVersion()
 
-    if sFlashVersion != "":
+    if sFlashVersion == "":
         # set global swc to latest available
         aAllVersions    = os.listdir(
             os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
@@ -127,11 +129,14 @@ def loadCompletions(cWindow):
 
 class CreateCompletionsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
-        checkCompletions(self.window)
+        reloadCompletions(self.window)
 
 class CompletionsListenerAs3(sublime_plugin.EventListener):
     SCOPE_IMPORT            = "source.actionscript.3 meta.package.actionscript.3 - meta.class.actionscript.3"
     SCOPE_TYPE              = "source.actionscript.3 meta.class.actionscript.3 meta.storage.type.actionscript.3"
+
+    def on_load_async(self, view):
+        checkCompletions(view.window())
 
     def on_query_completions(self, view, prefix, locations):
         aAutoList       = None
