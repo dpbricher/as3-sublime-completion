@@ -1,19 +1,19 @@
 import os
-import json
-
-import zipfile
-import tempfile
-import xml.dom.minidom as Xml
-from os.path import join
-from sys import platform
-
-import io
-import re
-import subprocess
-
 import sublime, sublime_plugin
+import importlib
 
-SETTING_FILE_NAME       = "ActionScript 3-0.sublime-settings"
+from os.path import join as pjoin
+
+PACKAGE_NAME            = os.path.basename( os.path.dirname( os.path.realpath(__file__) ) )
+PACKAGE_PREFIX          = PACKAGE_NAME + "."
+
+comp_formatter          = importlib.import_module(PACKAGE_PREFIX + "comp_formatter")
+completions             = importlib.import_module(PACKAGE_PREFIX + "completions")
+flex_config             = importlib.import_module(PACKAGE_PREFIX + "flex_config")
+source_dir_as3          = importlib.import_module(PACKAGE_PREFIX + "source_dir_as3")
+swc                     = importlib.import_module(PACKAGE_PREFIX + "swc")
+
+SETTING_FILE_NAME       = PACKAGE_NAME + os.extsep + "sublime-settings"
 FLEX_SDK_PATH_KEY       = "flex_sdk_path"
 BUILD_CONFIG_PATH_KEY   = "build_config_path"
 
@@ -36,7 +36,7 @@ def reloadCompletions(cWindow):
     cPluginSettings = sublime.load_settings(SETTING_FILE_NAME)
 
     global gsBuildXml
-    gsBuildXml      = join(
+    gsBuildXml      = pjoin(
         os.path.dirname(cWindow.project_file_name()),
         cPluginSettings.get(BUILD_CONFIG_PATH_KEY)
     )
@@ -57,7 +57,7 @@ def loadCompletions(cWindow):
     sFlashVersion       = ""
 
     if gsBuildXml:
-        cConfigReader   = FlexConfigParser()
+        cConfigReader   = flex_config.FlexConfigParser()
         cConfigReader.readConfig(gsBuildXml)
         cConfigReader.parseData()
 
@@ -66,7 +66,7 @@ def loadCompletions(cWindow):
     if sFlashVersion == "":
         # set global swc to latest available
         aAllVersions    = os.listdir(
-            os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
+            pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
         )
         aAllVersions.sort()
 
@@ -79,21 +79,19 @@ def loadCompletions(cWindow):
     # add global swc source path so long as config does not have source-path append="false"
     if cConfigReader == None or cConfigReader.getAppendSourceFlag():
         sGlobalSwcPath      = os.path.realpath(
-            os.path.join(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
+            pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
         )
 
         if sGlobalSwcPath not in aSourceSwcs:
             aSourceSwcs.append(sGlobalSwcPath)
 
-    # global gaImports, gaTypes
-
     aImports       = []
     aTypes         = []
 
-    cSwcReader      = SwcReader(sFlexSdkPath)
-    cDirReader      = SourceDirAs3Reader()
+    cSwcReader      = swc.SwcReader(sFlexSdkPath)
+    cDirReader      = source_dir_as3.SourceDirAs3Reader()
 
-    cFormatter      = CompletionFormatter()
+    cFormatter      = comp_formatter.CompletionFormatter()
 
     for sPath in aSourceDirs:
         cDirReader.readDir(sPath)
@@ -125,7 +123,7 @@ def loadCompletions(cWindow):
 
     global gcCompletionsMap
 
-    gcCompletionsMap[cWindow.id()]   = Completions(aImports, aTypes)
+    gcCompletionsMap[cWindow.id()]   = completions.Completions(aImports, aTypes)
 
 class CreateCompletionsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
@@ -162,271 +160,3 @@ class CompletionsListenerAs3(sublime_plugin.EventListener):
                         break
 
         return aAutoList
-
-class SwfReader:
-    SWFDUMP_NAME    = "swfdump"
-
-    ABC_TAG_NAME    = "DoABC2"
-
-    def __init__(self, sFlexSdkPath=""):
-        self.sFlexSdkDir    = sFlexSdkPath
-
-        # swf dump for library swf
-        self.cLibraryXml    = 0
-
-        # list of abc defs
-        self.aAbcs          = []
-
-        # fully qualified class names list, . separated
-        self.aFqClassNames  = None
-
-    # basic dump of swf
-    def readSwf(self, sSwfPath):
-        self.cLibraryXml    = Xml.parseString(
-            self.runTool(self.SWFDUMP_NAME, [sSwfPath])
-        )
-
-    # function for reading ActionScript Bytecode (abc) from an swf
-    def readSwfAbc(self, sSwfPath):
-        cLibraryDump        = io.StringIO(
-            self.runTool(self.SWFDUMP_NAME, ["-abc", sSwfPath])
-        )
-
-        # extract contents of abc by text parsing, since the xml is not always valid -_-
-        sNextLine           = cLibraryDump.readline()
-
-        while sNextLine != "":
-            if self.ABC_TAG_NAME in sNextLine:
-                sAbc        = ""
-                sNextLine   = cLibraryDump.readline()
-
-                while ("/" + self.ABC_TAG_NAME) not in sNextLine:
-                    sAbc        += sNextLine
-                    sNextLine   = cLibraryDump.readline()
-
-                self.aAbcs.append(sAbc)
-
-            sNextLine       = cLibraryDump.readline()
-
-    # call this to parse read swf data and populate info vars
-    def parseData(self):
-        aNames              = []
-
-        for cAbc in self.cLibraryXml.getElementsByTagName(self.ABC_TAG_NAME):
-            aNames.append(cAbc.getAttribute("name"))
-
-        self.aFqClassNames  = [s.replace("/", ".") for s in aNames]
-
-    def getFqClassNames(self):
-        return self.aFqClassNames
-
-    # takes the name of a flex sdk bin tool along with a list of arguments
-    # runs the tool, passing the listed arguments
-    # returns the output
-    def runTool(self, sToolName, aToolArgs = []):
-        aArgs   = [self.getToolPath(sToolName)] + aToolArgs
-
-        return subprocess.check_output(aArgs, universal_newlines=True)
-
-    # takes the name of a tool
-    # will append ".exe" for windows systems, and prepend the path to the flex sdk bin folder if the sdk path has been set
-    # returns the modified path
-    def getToolPath(self, sToolName):
-        sPath       = sToolName[:]
-
-        if "win32" in platform:
-            sPath   += ".exe"
-
-        if self.sFlexSdkDir != "":
-            sPath   = join(self.sFlexSdkDir, "bin", sPath)
-
-        return sPath
-
-class SwcReader(SwfReader):
-    CATALOG_NAME    = "catalog.xml"
-    LIBRARY_NAME    = "library.swf"
-
-    def __init__(self, sFlexSdkPath=""):
-        super().__init__(sFlexSdkPath)
-
-        # catalog xml
-        self.cCatalogXml    = 0
-
-    def readSwc(self, sSwcPath):
-        cFile               = zipfile.ZipFile(sSwcPath, "r")
-        # read catalog file
-        sCatalog            = cFile.read(self.CATALOG_NAME)
-        # extract library
-        cTempDir            = tempfile.TemporaryDirectory()
-        cFile.extract(self.LIBRARY_NAME, path=cTempDir.name)
-        # read library
-        self.readSwf(os.path.join(cTempDir.name, self.LIBRARY_NAME))
-
-        cTempDir.cleanup()
-        cTempDir            = None
-
-        cFile.close()
-
-        self.cCatalogXml    = Xml.parseString(sCatalog)
-
-    def parseData(self):
-        super().parseData()
-
-class FlexConfigParser:
-    def __init__(self):
-        self.cConfigXml     = None
-
-        self.aSourceDirs    = None
-        self.aSourceSwcs    = None
-
-        self.sFlashVersion  = None
-
-        self.sConfigPath    = None
-        self.sConfigDir     = None
-
-    def readConfig(self, sConfigPath):
-        self.sConfigPath    = sConfigPath
-        self.sConfigDir     = os.path.dirname(sConfigPath)
-
-        self.cConfigXml     = Xml.parse(sConfigPath)
-
-    def parseData(self):
-        # (re)initialise vars
-        self.aSourceDirs    = []
-        self.aSourceSwcs    = []
-
-        self.sFlashVersion  = ""
-
-        # get flash version
-        cVersionNodes   = self.cConfigXml.getElementsByTagName("target-player")
-
-        if cVersionNodes != None:
-            self.sFlashVersion  = cVersionNodes[0].firstChild.data
-
-        # find additional src paths
-        cSourcePaths    = self.cConfigXml.getElementsByTagName("source-path")
-
-        if cSourcePaths != None:
-            cSourcePaths    = cSourcePaths[0].getElementsByTagName("path-element")
-
-            for cPath in cSourcePaths:
-                self.aSourceDirs.append(cPath.firstChild.data)
-
-        # need to check the different ways of inluding sources and amend this as appropriate
-        cSourceSwcs     = self.cConfigXml.getElementsByTagName("include-libraries")
-
-        if cSourceSwcs != None:
-            cSourceSwcs     = cSourceSwcs[0].getElementsByTagName("library")
-
-            for cLibrary in cSourceSwcs:
-                self.aSourceSwcs.append(cLibrary.firstChild.data)
-
-        aAbsPaths   = []
-        aAbsSwcs    = []
-
-        # make all source paths absolute
-        for sPath in self.aSourceDirs:
-            if not os.path.isabs(sPath):
-                sPath   = join(self.sConfigDir, sPath)
-
-            aAbsPaths.append(sPath)
-
-        # make all source swcs absolute
-        for sPath in self.aSourceSwcs:
-            if not os.path.isabs(sPath):
-                sPath   = join(self.sConfigDir, sPath)
-
-            aAbsSwcs.append(sPath)
-
-        self.aSourceDirs    = aAbsPaths
-        self.aSourceSwcs    = aAbsSwcs
-
-    def getFlashVersion(self):
-        return self.sFlashVersion
-
-    def getSourceDirs(self):
-        return self.aSourceDirs
-
-    def getSourceSwcs(self):
-        return self.aSourceSwcs
-
-    def getAppendSourceFlag(self):
-        return True
-
-class SourceDirAs3Reader():
-    AS_EXT          = os.extsep + "as"
-    AS_EXT_LEN      = len(AS_EXT)
-
-    SWC_EXT         = os.extsep + "swc"
-
-    def __init__(self):
-        self.sSourceDir     = None
-        self.aSourceFiles   = None
-        self.aSourceSwcs    = None
-
-        self.aFqClassNames  = None
-
-    def readDir(self, sDirPath):
-        aPaths  = []
-
-        self.sSourceDir     = sDirPath
-
-        self.aSourceFiles   = []
-
-        for cInfo in os.walk(self.sSourceDir, True, None, True):
-            for sFile in cInfo[2]:
-                if sFile.endswith(self.AS_EXT):
-                    self.aSourceFiles.append( os.path.join(cInfo[0], sFile) )
-
-        self.aSourceSwcs    = [os.path.join(self.sSourceDir, s) for s in os.listdir(self.sSourceDir) if s.endswith(self.SWC_EXT)]
-
-    def parseData(self):
-        self.aFqClassNames  = []
-
-        for sPath in self.aSourceFiles:
-            sPath   = os.path.relpath(sPath, self.sSourceDir)
-            sPath   = sPath[:-self.AS_EXT_LEN]
-            sPath   = sPath.replace(os.sep, ".")
-
-            self.aFqClassNames.append(sPath)
-
-    def getFqClassNames(self):
-        return self.aFqClassNames
-
-    def getSourceSwcs(self):
-        return self.aSourceSwcs
-
-class CompletionFormatter:
-    def __init__(self):
-        pass
-
-    def createImportList(self, aFqClassNames):
-        aImports    = [
-            ("import " + s.replace("/", ".") + ";",) for s in aFqClassNames
-        ]
-
-        return aImports
-
-    def createTypeList(self, aFqClassNames):
-        aTypes  = [
-            ( s, re.sub(r".*\.", "", s) ) for s in aFqClassNames
-        ]
-
-        return aTypes
-
-class Completions:
-    def __init__(self, aImports = [], aTypes = []):
-        self.aImports   = aImports
-        self.aTypes     = aTypes
-
-    def setImports(self, aList):
-        self.aImports   = aList
-
-    def setTypes(self, aList):
-        self.aTypes     = aList
-
-    def getImports(self):
-        return self.aImports
-
-    def getTypes(self):
-        return self.aTypes

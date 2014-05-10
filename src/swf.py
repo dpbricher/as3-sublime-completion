@@ -7,80 +7,80 @@ from os.path import join
 from sys import platform
 
 class SwfReader:
-	SWFDUMP_NAME	= "swfdump"
-	
-	ABC_TAG_NAME	= "DoABC2"
+    SWFDUMP_NAME    = "swfdump"
 
-	def __init__(self, sFlexSdkPath=""):
-		self.sFlexSdkDir	= sFlexSdkPath
+    ABC_TAG_NAME    = "DoABC2"
 
-		# swf dump for library swf
-		self.cLibraryXml	= 0
-		
-		# list of abc defs
-		self.aAbcs			= []
+    def __init__(self, sFlexSdkPath=""):
+        self.sFlexSdkDir    = sFlexSdkPath
 
-		# fully qualified class names list, . separated
-		self.aFqClassNames  = None
+        # swf dump for library swf
+        self.cLibraryXml    = 0
 
-	# basic dump of swf
-	def readSwf(self, sSwfPath):
-		self.cLibraryXml	= Xml.parseString(
-			self.runTool(self.SWFDUMP_NAME, [sSwfPath])
-		)
+        # list of abc defs
+        self.aAbcs          = []
 
-	# function for reading ActionScript Bytecode (abc) from an swf
-	def readSwfAbc(self, sSwfPath):
-		cLibraryDump		= io.StringIO(
-			self.runTool(self.SWFDUMP_NAME, ["-abc", sSwfPath])
-		)
+        # fully qualified class names list, . separated
+        self.aFqClassNames  = None
 
-		# extract contents of abc by text parsing, since the xml is not always valid -_-
-		sNextLine			= cLibraryDump.readline()
+    # basic dump of swf
+    def readSwf(self, sSwfPath):
+        self.cLibraryXml    = Xml.parseString(
+            self.runTool(self.SWFDUMP_NAME, [sSwfPath])
+        )
 
-		while sNextLine != "":
-			if self.ABC_TAG_NAME in sNextLine:
-				sAbc		= ""
-				sNextLine	= cLibraryDump.readline()
-				
-				while ("/" + self.ABC_TAG_NAME) not in sNextLine:
-					sAbc		+= sNextLine
-					sNextLine	= cLibraryDump.readline()
-					
-				self.aAbcs.append(sAbc)
+    # function for reading ActionScript Bytecode (abc) from an swf
+    def readSwfAbc(self, sSwfPath):
+        cLibraryDump        = io.StringIO(
+            self.runTool(self.SWFDUMP_NAME, ["-abc", sSwfPath])
+        )
 
-			sNextLine		= cLibraryDump.readline()
+        # extract contents of abc by text parsing, since the xml is not always valid -_-
+        sNextLine           = cLibraryDump.readline()
 
-	# call this to parse read swf data and populate info vars
-	def parseData(self):		
-		aNames				= []
+        while sNextLine != "":
+            if self.ABC_TAG_NAME in sNextLine:
+                sAbc        = ""
+                sNextLine   = cLibraryDump.readline()
 
-		for cAbc in self.cLibraryXml.getElementsByTagName(self.ABC_TAG_NAME):
-			aNames.append(cAbc.getAttribute("name"))
+                while ("/" + self.ABC_TAG_NAME) not in sNextLine:
+                    sAbc        += sNextLine
+                    sNextLine   = cLibraryDump.readline()
 
-		self.aFqClassNames	= [s.replace("/", ".") for s in aNames]
+                self.aAbcs.append(sAbc)
 
-	def getFqClassNames(self):
-		return self.aFqClassNames
-	
-	# takes the name of a flex sdk bin tool along with a list of arguments
-	# runs the tool, passing the listed arguments
-	# returns the output
-	def runTool(self, sToolName, aToolArgs = []):
-		aArgs	= [self.getToolPath(sToolName)] + aToolArgs
+            sNextLine       = cLibraryDump.readline()
 
-		return subprocess.check_output(aArgs, universal_newlines=True)
+    # call this to parse read swf data and populate info vars
+    def parseData(self):
+        aNames              = []
 
-	# takes the name of a tool
-	# will append ".exe" for windows systems, and prepend the path to the flex sdk bin folder if the sdk path has been set
-	# returns the modified path
-	def getToolPath(self, sToolName):
-		sPath		= sToolName[:]
+        for cAbc in self.cLibraryXml.getElementsByTagName(self.ABC_TAG_NAME):
+            aNames.append(cAbc.getAttribute("name"))
 
-		if "win32" in platform:
-			sPath	+= ".exe"
+        self.aFqClassNames  = [s.replace("/", ".") for s in aNames]
 
-		if self.sFlexSdkDir != "":
-			sPath	= join(self.sFlexSdkDir, "bin", sPath)
+    def getFqClassNames(self):
+        return self.aFqClassNames
 
-		return sPath
+    # takes the name of a flex sdk bin tool along with a list of arguments
+    # runs the tool, passing the listed arguments
+    # returns the output
+    def runTool(self, sToolName, aToolArgs = []):
+        aArgs   = [self.getToolPath(sToolName)] + aToolArgs
+
+        return subprocess.check_output(aArgs, universal_newlines=True)
+
+    # takes the name of a tool
+    # will append ".exe" for windows systems, and prepend the path to the flex sdk bin folder if the sdk path has been set
+    # returns the modified path
+    def getToolPath(self, sToolName):
+        sPath       = sToolName[:]
+
+        if "win32" in platform:
+            sPath   += ".exe"
+
+        if self.sFlexSdkDir != "":
+            sPath   = join(self.sFlexSdkDir, "bin", sPath)
+
+        return sPath

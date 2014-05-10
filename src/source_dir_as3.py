@@ -1,34 +1,34 @@
 import os
 
 class SourceDirAs3Reader():
-	AS_EXT			= os.extsep + "as"
-	AS_EXT_LEN		= len(AS_EXT)
+    AS_EXT          = os.extsep + "as"
+    AS_EXT_LEN      = len(AS_EXT)
 
-	SWC_EXT			= os.extsep + "swc"
+    SWC_EXT         = os.extsep + "swc"
 
-	def __init__(self):
-		self.sSourceDir		= None
-		self.aSourceFiles	= None
-		self.aSourceSwcs	= None
+    def __init__(self):
+        self.sSourceDir     = None
+        self.aSourceFiles   = None
+        self.aSourceSwcs    = None
 
-		self.aFqClassNames  = None
+        self.aFqClassNames  = None
 
-	def readDir(self, sDirPath):
-		aPaths	= []
+    def readDir(self, sDirPath):
+        aPaths  = []
 
-		self.sSourceDir		= sDirPath
+        self.sSourceDir     = sDirPath
 
-		self.aSourceFiles	= []
+        self.aSourceFiles   = []
 
 		# find all ActionScript source files within source dir
-		for cInfo in os.walk(self.sSourceDir, True, None, True):
-			for sFile in cInfo[2]:
-				if sFile.endswith(self.AS_EXT):
-					self.aSourceFiles.append( os.path.join(cInfo[0], sFile) )
+        for cInfo in os.walk(self.sSourceDir, True, None, True):
+            for sFile in cInfo[2]:
+                if sFile.endswith(self.AS_EXT):
+                    self.aSourceFiles.append( os.path.join(cInfo[0], sFile) )
 
-		self.aSourceSwcs	= [os.path.join(self.sSourceDir, s) for s in os.listdir(self.sSourceDir) if s.endswith(self.SWC_EXT)]
+        self.aSourceSwcs    = [os.path.join(self.sSourceDir, s) for s in os.listdir(self.sSourceDir) if s.endswith(self.SWC_EXT)]
 
-	def parseData(self):
+    def parseData(self):
         self.aFqClassNames  = []
 
         for sPath in self.aSourceFiles:

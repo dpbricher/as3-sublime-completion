@@ -1,57 +1,84 @@
+import os.path
 import xml.dom.minidom as Xml
 
 class FlexConfigParser:
-	def __init__(self):
-		self.cConfigXml		= None
+    def __init__(self):
+        self.cConfigXml     = None
 
-		self.aSourceDirs	= None
-		self.aSourceSwcs	= None
+        self.aSourceDirs    = None
+        self.aSourceSwcs    = None
 
-		self.sFlashVersion	= None
+        self.sFlashVersion  = None
 
-	def readConfig(self, sConfigPath):
-		self.cConfigXml	= Xml.parse(sConfigPath)
+        self.sConfigPath    = None
+        self.sConfigDir     = None
 
-	def parseData(self):
-		# (re)initialise vars
-		self.aSourceDirs	= []
-		self.aSourceSwcs	= []
+    def readConfig(self, sConfigPath):
+        self.sConfigPath    = sConfigPath
+        self.sConfigDir     = os.path.dirname(sConfigPath)
 
-		self.sFlashVersion	= ""
+        self.cConfigXml     = Xml.parse(sConfigPath)
 
-		# get flash version
-		cVersionNodes   = self.cConfigXml.getElementsByTagName("target-player")
+    def parseData(self):
+        # (re)initialise vars
+        self.aSourceDirs    = []
+        self.aSourceSwcs    = []
 
-		if cVersionNodes != None:
-		    self.sFlashVersion	= cVersionNodes[0].firstChild.data
+        self.sFlashVersion  = ""
 
-		# find additional src paths
-		cSourcePaths    = self.cConfigXml.getElementsByTagName("source-path")
+        # get flash version
+        cVersionNodes   = self.cConfigXml.getElementsByTagName("target-player")
 
-		if cSourcePaths != None:
-		    cSourcePaths    = cSourcePaths[0].getElementsByTagName("path-element")
+        if cVersionNodes != None:
+            self.sFlashVersion  = cVersionNodes[0].firstChild.data
 
-		    for cPath in cSourcePaths:
-		        self.aSourceDirs.append(cPath.firstChild.data)
+        # find additional src paths
+        cSourcePaths    = self.cConfigXml.getElementsByTagName("source-path")
 
-		# need to check the different ways of inluding sources and amnd this as appropriate
-		cSourceSwcs		= self.cConfigXml.getElementsByTagName("include-libraries")
+        if cSourcePaths != None:
+            cSourcePaths    = cSourcePaths[0].getElementsByTagName("path-element")
 
-		if cSourceSwcs != None:
-			cSourceSwcs		= cSourceSwcs[0].getElementsByTagName("library")
+            for cPath in cSourcePaths:
+                self.aSourceDirs.append(cPath.firstChild.data)
 
-			for cLibrary in cSourceSwcs:
-				self.aSourceSwcs.append(cLibrary.firstChild.data)
+        # need to check the different ways of inluding sources and amend this as appropriate
+        cSourceSwcs     = self.cConfigXml.getElementsByTagName("include-libraries")
 
-	def getFlashVersion(self):
-		return self.sFlashVersion
+        if cSourceSwcs != None:
+            cSourceSwcs     = cSourceSwcs[0].getElementsByTagName("library")
 
-	def getSourceDirs(self):
-		return self.aSourceDirs
+            for cLibrary in cSourceSwcs:
+                self.aSourceSwcs.append(cLibrary.firstChild.data)
 
-	def getSourceSwcs(self):
-		return self.aSourceSwcs
+        aAbsPaths   = []
+        aAbsSwcs    = []
+
+        # make all source paths absolute
+        for sPath in self.aSourceDirs:
+            if not os.path.isabs(sPath):
+                sPath   = join(self.sConfigDir, sPath)
+
+            aAbsPaths.append(sPath)
+
+        # make all source swcs absolute
+        for sPath in self.aSourceSwcs:
+            if not os.path.isabs(sPath):
+                sPath   = join(self.sConfigDir, sPath)
+
+            aAbsSwcs.append(sPath)
+
+        self.aSourceDirs    = aAbsPaths
+        self.aSourceSwcs    = aAbsSwcs
+
+    def getFlashVersion(self):
+        return self.sFlashVersion
+
+    def getSourceDirs(self):
+        return self.aSourceDirs
+
+    def getSourceSwcs(self):
+        return self.aSourceSwcs
 
 	# TODO: implement this :o
-	def getAppendSourceFlag(self):
-		return True
+    def getAppendSourceFlag(self):
+        return True
