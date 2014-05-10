@@ -4,7 +4,7 @@ import tempfile
 import xml.dom.minidom as Xml
 import importlib
 
-PACKAGE_NAME    = os.path.basename( os.path.dirname( os.path.realpath(__file__) ) )
+PACKAGE_NAME    = os.path.splitext( os.path.basename( os.path.dirname( os.path.realpath(__file__) ) ) )[0]
 swf             = importlib.import_module(PACKAGE_NAME + ".swf")
 #
 # Class for reading and parsing swc files

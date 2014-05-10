@@ -4,7 +4,7 @@ import importlib
 
 from os.path import join as pjoin
 
-PACKAGE_NAME            = os.path.basename( os.path.dirname( os.path.realpath(__file__) ) )
+PACKAGE_NAME            = os.path.splitext( os.path.basename( os.path.dirname( os.path.realpath(__file__) ) ) )[0]
 PACKAGE_PREFIX          = PACKAGE_NAME + "."
 
 comp_formatter          = importlib.import_module(PACKAGE_PREFIX + "comp_formatter")
