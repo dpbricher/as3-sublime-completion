@@ -110,17 +110,6 @@ def loadCompletions(cWindow):
         aImports    += cFormatter.createImportList(cSwcReader.getFqClassNames())
         aTypes      += cFormatter.createTypeList(cSwcReader.getFqClassNames())
 
-    # add default types manually here for now
-    aTypes          += [
-        ("Array",),
-        ("Boolean",),
-        ("int",),
-        ("uint",),
-        ("Number",),
-        ("Object",),
-        ("String",)
-    ]
-
     global gcCompletionsMap
 
     gcCompletionsMap[cWindow.id()]   = completions.Completions(aImports, aTypes)

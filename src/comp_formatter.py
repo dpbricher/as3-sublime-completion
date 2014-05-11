@@ -6,7 +6,7 @@ class CompletionFormatter:
 
     def createImportList(self, aFqClassNames):
         aImports    = [
-            ("import " + s.replace("/", ".") + ";",) for s in aFqClassNames
+            ("import " + s.replace("/", ".") + ";",) for s in aFqClassNames if re.search(r"[/\.]", s) != None
         ]
 
         return aImports
