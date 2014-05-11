@@ -4,7 +4,9 @@ import tempfile
 import xml.dom.minidom as Xml
 import importlib
 
-PACKAGE_NAME    = os.path.splitext( os.path.basename( os.path.dirname( os.path.realpath(__file__) ) ) )[0]
+PACKAGE_PATH    = os.path.dirname( os.path.realpath(__file__) )
+PACKAGE_NAME    = os.path.basename(PACKAGE_PATH)
+
 swf             = importlib.import_module(PACKAGE_NAME + ".swf")
 #
 # Class for reading and parsing swc files
@@ -19,22 +21,44 @@ class SwcReader(swf.SwfReader):
         # catalog xml
         self.cCatalogXml    = 0
 
+        # set this to true if we hit an error whilst parsing the swc dump
+        self.bReadError     = False
+
     def readSwc(self, sSwcPath):
-        cFile               = zipfile.ZipFile(sSwcPath, "r")
         # read catalog file
+        cFile               = zipfile.ZipFile(sSwcPath, "r")
         sCatalog            = cFile.read(self.CATALOG_NAME)
-        # extract library
-        cTempDir            = tempfile.TemporaryDirectory()
-        cFile.extract(self.LIBRARY_NAME, path=cTempDir.name)
-        # read library
-        self.readSwf(os.path.join(cTempDir.name, self.LIBRARY_NAME))
-
-        cTempDir.cleanup()
-        cTempDir            = None
-
         cFile.close()
 
         self.cCatalogXml    = Xml.parseString(sCatalog)
 
+        # read library
+        try:
+            self.readSwf(sSwcPath)
+        except:
+            # fp9 playerglobal.swc has a syntax error in its meta data -_-
+            # So, for now just going to assume that if its a playerglobal.swc giving this error then its fp9
+            # Lazy I know
+            self.bReadError = True
+
     def parseData(self):
-        super().parseData()
+        if not self.bReadError:
+            super().parseData()
+        else:
+            self.parseBackupData()
+
+    def parseBackupData(self):
+        # load some fqcns I prepared earlier
+        self.aFqClassNames  = []
+
+        cFile               = open( os.path.join(PACKAGE_PATH, "fp9-fqcn.txt"), "rt" )
+        
+        while True:
+            cNext           = cFile.readline()
+            
+            if cNext == "":
+                break
+
+            self.aFqClassNames.append(cNext.strip())
+
+        cFile.close()
