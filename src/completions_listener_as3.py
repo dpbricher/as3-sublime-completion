@@ -1,6 +1,7 @@
 import os
-import sublime, sublime_plugin
 import importlib
+import threading
+import sublime, sublime_plugin
 
 from os.path import join as pjoin
 
@@ -42,13 +43,23 @@ def reloadCompletions(cWindow):
     )
 
     if os.path.exists(gsBuildXml):
-        loadCompletions(cWindow)
+        # ensure that a completions object for this window exists so that checkCompletions() will not attempt to
+        # reload the completions whilst they are being generated
+        if gcCompletionsMap.get(cWindow.id()) is None:
+            gcCompletionsMap[cWindow.id()]  = completions.Completions()
+            
+        # start async completions generation
+        threading.Thread(target=loadCompletions, args=(cWindow,)).start()
 
 def loadCompletions(cWindow):
+    global gcCompletionsMap
+
     try:
         cSettings       = sublime.load_settings(SETTING_FILE_NAME)
         sFlexSdkPath    = cSettings.get(FLEX_SDK_PATH_KEY)
-    except (e):
+    except:
+        # clear completions instance for this window so that checkCompletions will attempt to reload them
+        gcCompletionsMap[cWindow.id()]  = None
         return
 
     aSourceDirs         = []
@@ -109,8 +120,6 @@ def loadCompletions(cWindow):
 
         aImports    += cFormatter.createImportList(cSwcReader.getFqClassNames())
         aTypes      += cFormatter.createTypeList(cSwcReader.getFqClassNames())
-
-    global gcCompletionsMap
 
     gcCompletionsMap[cWindow.id()]   = completions.Completions(aImports, aTypes)
 

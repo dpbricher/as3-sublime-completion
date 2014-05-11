@@ -67,9 +67,13 @@ class SwfReader:
     # runs the tool, passing the listed arguments
     # returns the output
     def runTool(self, sToolName, aToolArgs = []):
-        aArgs   = [self.getToolPath(sToolName)] + aToolArgs
+        aArgs                   = [self.getToolPath(sToolName)] + aToolArgs
 
-        return subprocess.check_output(aArgs, universal_newlines=True)
+        # prevent a new terminal window from opening on windows machines
+        startupInfo             = subprocess.STARTUPINFO()
+        startupInfo.dwFlags     |= subprocess.STARTF_USESHOWWINDOW
+
+        return subprocess.check_output(aArgs, universal_newlines=True, startupinfo=startupInfo)
 
     # takes the name of a tool
     # will append ".exe" for windows systems, and prepend the path to the flex sdk bin folder if the sdk path has been set
