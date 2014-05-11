@@ -66,13 +66,10 @@ def createValueNode(value):
 				createValueNode(i)
 			)
 	elif valueType is dict or valueType is collections.OrderedDict:
-		cNode		= ET.Element("dict")
-		cNode.append(
-			createXmlFragment(value)
-		)
+		cNode		= createXmlFragment(value)
 	else:
 		print("unknown element type found! : " + str(valueType))
-		cNode	= ET.Element("string")
+		cNode		= ET.Element("string")
 
 	return cNode
 

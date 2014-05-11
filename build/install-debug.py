@@ -9,7 +9,7 @@ sSublimePackagesDir	= "C:/Users/Dean/AppData/Roaming/Sublime Text 3/Packages"
 sCopyDestDir		= os.path.join(sSublimePackagesDir, "ActionScript 3-0")
 
 # convert language json to plist
-#subprocess.call(["python", "json_to_plist.py", os.path.join(sPackagePath, "ActionScript 3-0.tmLanguage.json")])
+subprocess.call(["python", "json_to_plist.py", os.path.join(sPackagePath, "ActionScript 3-0.tmLanguage.json")])
 
 # copy package files
 if os.path.exists(sSublimePackagesDir):

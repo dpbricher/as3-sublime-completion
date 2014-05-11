@@ -12,7 +12,7 @@ PACKAGE_NAME	= "ActionScript 3-0.sublime-package"
 os.makedirs(BIN_DIR, exist_ok=True)
 
 # convert language json to plist
-#subprocess.call(["python", "json_to_plist.py", os.path.join(SRC_DIR, "ActionScript 3-0.tmLanguage.json")])
+subprocess.call(["python", "json_to_plist.py", os.path.join(SRC_DIR, "ActionScript 3-0.tmLanguage.json")])
 
 # open package archive
 cPackage		= zipfile.ZipFile( os.path.join(BIN_DIR, PACKAGE_NAME), "w" )

@@ -5,7 +5,7 @@ import xml.dom.minidom as Xml
 import importlib
 
 PACKAGE_PATH    = os.path.dirname( os.path.realpath(__file__) )
-PACKAGE_NAME    = os.path.basename(PACKAGE_PATH)
+PACKAGE_NAME    = os.path.splitext( os.path.basename(PACKAGE_PATH) )[0]
 
 swf             = importlib.import_module(PACKAGE_NAME + ".swf")
 #
