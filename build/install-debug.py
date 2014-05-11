@@ -13,7 +13,6 @@ subprocess.call(["python", "json_to_plist.py", os.path.join(sPackagePath, "Actio
 
 # copy package files
 if os.path.exists(sSublimePackagesDir):
-	# if os.path.exists(sCopyDestDir):
 	shutil.rmtree(sCopyDestDir, ignore_errors=True)
 
 	shutil.copytree(sPackagePath, sCopyDestDir)

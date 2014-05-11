@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import shutil
 import zipfile
 import subprocess
 
@@ -9,7 +10,8 @@ BIN_DIR			= "../bin"
 PACKAGE_NAME	= "ActionScript 3-0.sublime-package"
 
 # create bin dir
-os.makedirs(BIN_DIR, exist_ok=True)
+shutil.rmtree(BIN_DIR, ignore_errors=True)
+os.makedirs(BIN_DIR)
 
 # convert language json to plist
 subprocess.call(["python", "json_to_plist.py", os.path.join(SRC_DIR, "ActionScript 3-0.tmLanguage.json")])
