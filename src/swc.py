@@ -4,10 +4,10 @@ import tempfile
 import xml.dom.minidom as Xml
 import importlib
 
-PACKAGE_PATH    = os.path.dirname( os.path.realpath(__file__) )
-PACKAGE_NAME    = os.path.splitext( os.path.basename(PACKAGE_PATH) )[0]
+PACKAGE_NAME    = os.path.splitext( os.path.basename( os.path.dirname( os.path.realpath(__file__) ) ) )[0]
 
 swf             = importlib.import_module(PACKAGE_NAME + ".swf")
+fp9_fqcn        = importlib.import_module(PACKAGE_NAME + ".fp9-fqcn")
 #
 # Class for reading and parsing swc files
 #
@@ -48,17 +48,4 @@ class SwcReader(swf.SwfReader):
             self.parseBackupData()
 
     def parseBackupData(self):
-        # load some fqcns I prepared earlier
-        self.aFqClassNames  = []
-
-        cFile               = open( os.path.join(PACKAGE_PATH, "fp9-fqcn.txt"), "rt" )
-        
-        while True:
-            cNext           = cFile.readline()
-            
-            if cNext == "":
-                break
-
-            self.aFqClassNames.append(cNext.strip())
-
-        cFile.close()
+        self.aFqClassNames  = fp9_fqcn.LIST[:]
