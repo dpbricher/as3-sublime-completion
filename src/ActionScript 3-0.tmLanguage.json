@@ -99,6 +99,17 @@
                 }
             ]
         },
+        "regex" : {
+            "name" : "string.regex.actionscript.3",
+            "begin" : "/",
+            "end" : "/[igmsx]*",
+            "patterns" : [
+                {
+                    "name" : "constant.character.escape.actionscript.3",
+                    "match" : "\\\\."
+                }
+            ]
+        },
         "imports" : {
             "patterns" : [
                 {
@@ -234,6 +245,9 @@
                     "include" : "#strings"
                 },
                 {
+                    "include" : "#regex"
+                },
+                {
                     "include" : "#operators"
                 }
             ]
@@ -260,6 +274,9 @@
                 },
                 {
                     "include" : "#strings"
+                },
+                {
+                    "include" : "#regex"
                 },
                 {
                     "include" : "#imports"
