@@ -3,9 +3,24 @@
 import os, os.path
 import shutil
 import subprocess
+import sys
 
-sPackagePath		= "../src"
-sSublimePackagesDir	= "C:/Users/Dean/AppData/Roaming/Sublime Text 3/Packages"
+sPackagePath			= "../src"
+sSublimePackagesDir		= {
+	"darwin"	: "~/Library/Application Support/Sublime Text 3/Packages",
+	"win32" 	: "~/AppData/Roaming/Sublime Text 3/Packages"
+	# "linux" 	: ""
+}.get(sys.platform)
+
+if sSublimePackagesDir is None:
+	sSublimePackagesDir	= ""
+
+sSublimePackagesDir		= os.path.expanduser(sSublimePackagesDir)
+
+if not os.path.exists(sSublimePackagesDir):
+	print("Cannot find Sublime Text packages directory")
+	exit()
+
 sCopyDestDir		= os.path.join(sSublimePackagesDir, "ActionScript 3-0")
 
 # convert language json to plist

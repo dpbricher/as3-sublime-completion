@@ -70,10 +70,14 @@ class SwfReader:
         aArgs                   = [self.getToolPath(sToolName)] + aToolArgs
 
         # prevent a new terminal window from opening on windows machines
-        startupInfo             = subprocess.STARTUPINFO()
-        startupInfo.dwFlags     |= subprocess.STARTF_USESHOWWINDOW
+        if "win32" in platform:
+            startupInfo             = subprocess.STARTUPINFO()
+            startupInfo.dwFlags     |= subprocess.STARTF_USESHOWWINDOW
+            sOutput                 = subprocess.check_output(aArgs, universal_newlines=True, startupinfo=startupInfo)
+        else:
+            sOutput                 = subprocess.check_output(aArgs, universal_newlines=True)
 
-        return subprocess.check_output(aArgs, universal_newlines=True, startupinfo=startupInfo)
+        return sOutput
 
     # takes the name of a tool
     # will append ".exe" for windows systems, and prepend the path to the flex sdk bin folder if the sdk path has been set
