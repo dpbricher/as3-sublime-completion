@@ -56,14 +56,14 @@ class FlexConfigParser:
         # make all source paths absolute
         for sPath in self.aSourceDirs:
             if not os.path.isabs(sPath):
-                sPath   = join(self.sConfigDir, sPath)
+                sPath   = os.path.join(self.sConfigDir, sPath)
 
             aAbsPaths.append(sPath)
 
         # make all source swcs absolute
         for sPath in self.aSourceSwcs:
             if not os.path.isabs(sPath):
-                sPath   = join(self.sConfigDir, sPath)
+                sPath   = os.path.join(self.sConfigDir, sPath)
 
             aAbsSwcs.append(sPath)
 
