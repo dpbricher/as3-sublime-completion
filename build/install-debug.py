@@ -8,8 +8,8 @@ import sys
 sPackagePath			= "../src"
 sSublimePackagesDir		= {
 	"darwin"	: "~/Library/Application Support/Sublime Text 3/Packages",
-	"win32" 	: "~/AppData/Roaming/Sublime Text 3/Packages"
-	# "linux" 	: ""
+	"win32" 	: "~/AppData/Roaming/Sublime Text 3/Packages",
+	"linux" 	: "~/.config/sublime-text-3/Packages"
 }.get(sys.platform)
 
 if sSublimePackagesDir is None:

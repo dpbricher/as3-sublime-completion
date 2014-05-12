@@ -2,15 +2,16 @@
 
 import os, os.path
 import shutil
+import subprocess
 import sys
 
 sPackageName            = "ActionScript 3-0.sublime-package"
 sPackagePath            = os.path.join("../bin/", sPackageName)
 
 sSublimePackagesDir     = {
-    "darwin"    : "C:/Program Files/Sublime Text 3/Packages",
-    "win32"     : "C:/Program Files/Sublime Text 3/Packages"
-    # "linux"     : ""
+    "darwin"    : "/Applications/Sublime Text.app/Contents/MacOS/Packages",
+    "win32"     : "C:/Program Files/Sublime Text 3/Packages",
+    "linux"     : "/opt/sublime_text/Packages"
 }.get(sys.platform)
 
 if sSublimePackagesDir is None:
@@ -21,7 +22,7 @@ if not os.path.exists(sSublimePackagesDir):
     exit()
 
 if not os.path.exists(sPackagePath):
-    os.system("build-package.py")
+    subprocess.call(["python", "build-package.py"])
 
 if os.path.exists(sSublimePackagesDir):
     sCopyDest   = os.path.join(sSublimePackagesDir, sPackageName)
