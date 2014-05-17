@@ -4,7 +4,6 @@ import xml.dom.minidom as Xml
 #
 # TODO:
 # Check if config xml is allowed multiples of source-path, include-libraries, etc
-# Check what all valid node types are for children of source path, include-libraries, etc
 #
 class FlexConfigParser:
     def __init__(self):
@@ -44,7 +43,7 @@ class FlexConfigParser:
         # find additional src paths
         cSourcePaths        = self.cConfigXml.getElementsByTagName("source-path")
 
-        if cSourcePaths != None:
+        if cSourcePaths.length > 0:
             # only take note of the first source path element since I don't think it accepts multiple, but should check
             cSourcePaths    = cSourcePaths[0]
 
@@ -57,18 +56,29 @@ class FlexConfigParser:
             # extract all paths
             cPathsList      = cSourcePaths.getElementsByTagName("path-element")
 
-            for cPath in cPathsList:
-                self.aSourceDirs.append(cPath.firstChild.data)
+            for cPathNode in cPathsList:
+                self.aSourceDirs.append(cPathNode.firstChild.data)
 
-        # need to check the different ways of inluding sources and amend this as appropriate
+        # find include libraries
         cSourceSwcs         = self.cConfigXml.getElementsByTagName("include-libraries")
 
-        if cSourceSwcs != None:
+        if cSourceSwcs.length > 0:
             cSourceSwcs     = cSourceSwcs[0]
             cLibraryList    = cSourceSwcs.getElementsByTagName("library")
 
-            for cLibrary in cLibraryList:
-                self.aSourceSwcs.append(cLibrary.firstChild.data)
+            for cLibraryNode in cLibraryList:
+                self.aSourceSwcs.append(cLibraryNode.firstChild.data)
+        
+        # find library paths and external libraries
+        for sNodeType in ["library-path", "external-library-path"]:
+            cSourceSwcs         = self.cConfigXml.getElementsByTagName(sNodeType)
+
+            if cSourceSwcs.length > 0:
+                cSourceSwcs     = cSourceSwcs[0]
+                cLibraryList    = cSourceSwcs.getElementsByTagName("path-element")
+
+                for cLibraryNode in cLibraryList:
+                    self.aSourceSwcs.append(cLibraryNode.firstChild.data)
 
         aAbsPaths   = []
         aAbsSwcs    = []
