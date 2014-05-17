@@ -1,13 +1,11 @@
 import os.path
 import zipfile
-import tempfile
 import xml.dom.minidom as Xml
 import importlib
 
 PACKAGE_NAME    = os.path.splitext( os.path.basename( os.path.dirname( os.path.realpath(__file__) ) ) )[0]
 
 swf             = importlib.import_module(PACKAGE_NAME + ".swf")
-fp9_fqcn        = importlib.import_module(PACKAGE_NAME + ".fp9-fqcn")
 #
 # Class for reading and parsing swc files
 #
@@ -19,7 +17,7 @@ class SwcReader(swf.SwfReader):
         super().__init__(sFlexSdkPath)
 
         # catalog xml
-        self.cCatalogXml    = 0
+        self.cCatalogXml    = None
 
         # set this to true if we hit an error whilst parsing the swc dump
         self.bReadError     = False
@@ -30,22 +28,21 @@ class SwcReader(swf.SwfReader):
         sCatalog            = cFile.read(self.CATALOG_NAME)
         cFile.close()
 
-        self.cCatalogXml    = Xml.parseString(sCatalog)
-
-        # read library
         try:
-            self.readSwf(sSwcPath)
+            self.cCatalogXml    = Xml.parseString(sCatalog)
         except:
-            # fp9 playerglobal.swc has a syntax error in its meta data -_-
-            # So, for now just going to assume that if its a playerglobal.swc giving this error then its fp9
-            # Lazy I know
-            self.bReadError = True
+            self.bReadError     = True
 
     def parseData(self):
+        aClassDefs          = []
+        
         if not self.bReadError:
-            super().parseData()
-        else:
-            self.parseBackupData()
+            cImportList     = self.cCatalogXml.getElementsByTagName("script")
 
-    def parseBackupData(self):
-        self.aFqClassNames  = fp9_fqcn.LIST[:]
+            for cScriptNode in cImportList:
+                cDefList    = cScriptNode.getElementsByTagName("def")
+                
+                for cDefNode in cDefList:
+                    aClassDefs.append(cDefNode.getAttribute("id"))
+            
+        self.aFqClassNames  = [s.replace(":", ".") for s in aClassDefs]
