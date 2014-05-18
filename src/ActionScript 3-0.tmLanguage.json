@@ -198,7 +198,7 @@
         "meta-storage-new" : {
             "patterns" : [
                 {
-                    "name" : "meta.storage.type.actionscript.3",
+                    "name" : "meta.storage.new.actionscript.3",
                     "match" : "\\b(new)\\s+((\\w+\\.)*)(\\w+)\\b",
                     "captures" : {
                         "1" : {
