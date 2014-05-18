@@ -87,8 +87,8 @@ def loadCompletions(cWindow):
         aSourceDirs     = cConfigReader.getSourceDirs()
         aSourceSwcs     = cConfigReader.getSourceSwcs()
 
-    # add global swc source path so long as config does not have source-path append="false"
-    if cConfigReader == None or cConfigReader.getAppendSourceFlag():
+    # add global swc source path if specified by the build config
+    if cConfigReader == None or cConfigReader.getAppendExternalFlag():
         sGlobalSwcPath      = os.path.realpath(
             pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
         )

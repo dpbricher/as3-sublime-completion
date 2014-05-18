@@ -17,7 +17,7 @@ class FlexConfigParser:
         self.sConfigPath    = None
         self.sConfigDir     = None
 
-        self.bAppendSrcPath = None
+        self.bAppendExtPath = None
 
     def readConfig(self, sConfigPath):
         self.sConfigPath    = sConfigPath
@@ -32,12 +32,12 @@ class FlexConfigParser:
 
         self.sFlashVersion  = ""
 
-        self.bAppendSrcPath = False
+        self.bAppendExtPath = False
 
         # get flash version
         cVersionNodes       = self.cConfigXml.getElementsByTagName("target-player")
 
-        if cVersionNodes != None:
+        if cVersionNodes.length > 0:
             self.sFlashVersion  = cVersionNodes[0].firstChild.data
 
         # find additional src paths
@@ -47,12 +47,6 @@ class FlexConfigParser:
             # only take note of the first source path element since I don't think it accepts multiple, but should check
             cSourcePaths    = cSourcePaths[0]
 
-            # get append setting
-            sAppend         = cSourcePaths.getAttribute("append")
-
-            if sAppend == "true":
-                self.bAppendSrcPath = True
-            
             # extract all paths
             cPathsList      = cSourcePaths.getElementsByTagName("path-element")
 
@@ -79,6 +73,19 @@ class FlexConfigParser:
 
                 for cLibraryNode in cLibraryList:
                     self.aSourceSwcs.append(cLibraryNode.firstChild.data)
+
+        # get append setting
+        cExtPathNode        = self.cConfigXml.getElementsByTagName("external-library-path")
+
+        # defaults to True if no external path node present
+        if cExtPathNode.length == 0:
+            self.bAppendExtPath = True
+        # otherwise defaults to False
+        else:
+            cExtPathNode        = cExtPathNode[0]
+            sAppend             = cExtPathNode.getAttribute("append")
+
+            self.bAppendExtPath = (sAppend == "true")
 
         aAbsPaths   = []
         aAbsSwcs    = []
@@ -109,5 +116,5 @@ class FlexConfigParser:
     def getSourceSwcs(self):
         return self.aSourceSwcs
 
-    def getAppendSourceFlag(self):
-        return self.bAppendSrcPath
+    def getAppendExternalFlag(self):
+        return self.bAppendExtPath
