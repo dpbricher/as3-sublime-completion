@@ -150,6 +150,11 @@ def loadCompletions(cWindow, sConfigPath):
 
     gcCompletionsMap[cWindow.id()]   = completions.Completions(aImports, aTypes)
 
+class AutoImportAs3Command(sublime_plugin.TextCommand):
+    def run(self, edit):
+        caretPos    = self.view.sel()[0]
+        print("word under caret = " + str(self.view.word(caretPos)))
+
 class LoadSettingsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
         loadSettings()
