@@ -1,4 +1,9 @@
 {
-	"flex_sdk_path" : "C:/Users/Dean/Downloads/flex_sdk_4.6",
-	"build_config_path" : "build-config.xml"
+	"flex_sdk_path" : "~/Downloads/flex_sdk_4.6",
+	"build_config_path" : "build-config.xml",
+	"completions_enabled" : {
+		"imports" : true,
+		"news" : true,
+		"types" : true
+	}
 }
