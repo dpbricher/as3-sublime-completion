@@ -2,6 +2,7 @@ import os
 import importlib
 import threading
 import sublime, sublime_plugin
+import pprint
 
 from os.path import join as pjoin
 
@@ -76,7 +77,7 @@ def reloadCompletions(cWindow):
         # reload the completions whilst they are being generated
         if gcCompletionsMap.get(cWindow.id()) is None:
             gcCompletionsMap[cWindow.id()]  = completions.Completions()
-            
+
         # start async completions generation
         threading.Thread(target=loadCompletions, args=(cWindow, sBuildConfigPath)).start()
 
@@ -153,6 +154,7 @@ def loadCompletions(cWindow, sConfigPath):
 class AutoImportAs3Command(sublime_plugin.TextCommand):
     def run(self, edit):
         caretPos    = self.view.sel()[0]
+        pprint.pprint(caretPos)
         print("word under caret = " + str(self.view.word(caretPos)))
 
 class LoadSettingsAs3Command(sublime_plugin.WindowCommand):
