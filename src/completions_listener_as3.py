@@ -2,7 +2,6 @@ import os
 import importlib
 import threading
 import sublime, sublime_plugin
-import pprint
 
 from os.path import join as pjoin
 
@@ -152,10 +151,48 @@ def loadCompletions(cWindow, sConfigPath):
     gcCompletionsMap[cWindow.id()]   = completions.Completions(aImports, aTypes)
 
 class AutoImportAs3Command(sublime_plugin.TextCommand):
+    def __init__(self, arg2):
+        super().__init__(arg2)
+
+        self.aMatches   = None
+        self.cEdit      = None
+
     def run(self, edit):
-        caretPos    = self.view.sel()[0]
-        pprint.pprint(caretPos)
-        print("word under caret = " + str(self.view.word(caretPos)))
+        cWindow         = sublime.active_window()
+        cCompletions    = gcCompletionsMap.get(cWindow.id())
+
+        if cCompletions is not None:
+            caretPos        = self.view.sel()[0]
+            typeUnderCaret  = self.view.substr(
+                self.view.expand_by_class(caretPos, sublime.CLASS_WORD_START | sublime.CLASS_WORD_END, " :,()")
+            )
+
+            # print("typeUnderCaret = " + typeUnderCaret)
+
+            # for s in cCompletions.getImports():
+                # print("s = " + s)
+
+            self.aMatches   = [t[0] for t in cCompletions.getImports() if typeUnderCaret in t[0]]
+            # aMatches.append("Last...")
+            if len(self.aMatches) > 0:
+                self.cEdit  = edit
+                self.view.show_popup_menu(self.aMatches, self.onImportSelection)
+        else:
+            print("none!")
+            # print(
+            #     "word under caret = " + self.view.substr(
+            #         self.view.expand_by_class(caretPos, sublime.CLASS_WORD_START | sublime.CLASS_WORD_END, " :,()")
+            #     )
+            # )
+
+    def onImportSelection(self, index):
+        if index > -1:
+            print("import selected = " + self.aMatches[index])
+            self.view.insert(
+                self.cEdit,
+                self.view.text_point(2, 0),
+                "\t" + self.aMatches[index] + "\n"
+            )
 
 class LoadSettingsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
