@@ -13,29 +13,16 @@ completions             = importlib.import_module(PACKAGE_PREFIX + "completions"
 flex_config             = importlib.import_module(PACKAGE_PREFIX + "flex_config")
 source_dir_as3          = importlib.import_module(PACKAGE_PREFIX + "source_dir_as3")
 swc                     = importlib.import_module(PACKAGE_PREFIX + "swc")
-
-SETTING_FILE_NAME       = PACKAGE_NAME + os.extsep + "sublime-settings"
-FLEX_SDK_PATH_KEY       = "flex_sdk_path"
-BUILD_CONFIG_PATH_KEY   = "build_config_path"
-COMPLETIONS_ENABLED_KEY = "completions_enabled"
-
-# completions types, used as keys in the enabled map
-IMPORTS_KEY             = "imports"
-NEWS_KEY                = "news"
-TYPES_KEY               = "types"
+settings                = importlib.import_module(PACKAGE_PREFIX + "settings")
+# shorthand for settings keys
+Keys                    = settings.Keys
 
 FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
 
 # map of Completion instances for each window; keys are that window's id()
 gcCompletionsMap        = {}
 
-# map of enabled completion types
-gcEnabledMap            = {}
-
-gsFlexSdkPath           = ""
-
-# path to build xml, can be relative to sublime project
-gsBuildXmlPath          = ""
+gcSettings              = settings.SettingsManager()
 
 
 def plugin_loaded():
@@ -46,29 +33,14 @@ def checkCompletions(cWindow):
         reloadCompletions(cWindow)
 
 def loadSettings():
-    try:
-        cPluginSettings = sublime.load_settings(SETTING_FILE_NAME)
-    except:
-        return
-
-    global gsFlexSdkPath
-    gsFlexSdkPath       = os.path.expanduser( cPluginSettings.get(FLEX_SDK_PATH_KEY) )
-
-    # get config xml path
-    global gsBuildXmlPath
-    gsBuildXmlPath      = os.path.expanduser( cPluginSettings.get(BUILD_CONFIG_PATH_KEY) )
-
-    # get enabled completions map
-    global gcEnabledMap
-    gcEnabledMap        = cPluginSettings.get(COMPLETIONS_ENABLED_KEY, {})
-
+    gcSettings.loadSettings()
 
 def reloadCompletions(cWindow):
     loadSettings()
 
     sBuildConfigPath    = pjoin(
         os.path.dirname( cWindow.project_file_name() ),
-        gsBuildXmlPath
+        gcSettings.get(Keys.BUILD_CONFIG_PATH)
     )
 
     if os.path.exists(sBuildConfigPath):
@@ -76,14 +48,16 @@ def reloadCompletions(cWindow):
         # reload the completions whilst they are being generated
         if gcCompletionsMap.get(cWindow.id()) is None:
             gcCompletionsMap[cWindow.id()]  = completions.Completions()
-            
+
         # start async completions generation
         threading.Thread(target=loadCompletions, args=(cWindow, sBuildConfigPath)).start()
 
 def loadCompletions(cWindow, sConfigPath):
     global gcCompletionsMap
 
-    if not os.path.exists(gsFlexSdkPath):
+    sFlexSdkPath        = gcSettings.get(Keys.FLEX_SDK_PATH)
+
+    if not os.path.exists(sFlexSdkPath):
         # clear completions instance for this window so that checkCompletions will attempt to reload them
         gcCompletionsMap[cWindow.id()]  = None
         return
@@ -102,7 +76,7 @@ def loadCompletions(cWindow, sConfigPath):
     if sFlashVersion == "":
         # set global swc to latest available
         aAllVersions    = os.listdir(
-            pjoin(gsFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
+            pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
         )
         aAllVersions.sort()
 
@@ -116,7 +90,7 @@ def loadCompletions(cWindow, sConfigPath):
     if cConfigReader == None or cConfigReader.getAppendExternalFlag():
         sGlobalSwcPath      = os.path.realpath(
             os.path.expanduser(
-                pjoin(gsFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
+                pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
             )
         )
 
@@ -126,7 +100,7 @@ def loadCompletions(cWindow, sConfigPath):
     aImports       = []
     aTypes         = []
 
-    cSwcReader      = swc.SwcReader(gsFlexSdkPath)
+    cSwcReader      = swc.SwcReader(sFlexSdkPath)
     cDirReader      = source_dir_as3.SourceDirAs3Reader()
 
     cFormatter      = comp_formatter.CompletionFormatter()
@@ -173,14 +147,16 @@ class CompletionsListenerAs3(sublime_plugin.EventListener):
         cCompletions    = gcCompletionsMap.get(cWindow.id())
 
         if cCompletions is not None and len(locations) == 1:
+            cEnabledMap     = gcSettings.get(Keys.COMPLETIONS_ENABLED)
+
             iCurrentPoint   = locations[0];
 
-            if gcEnabledMap.get(IMPORTS_KEY) != False:
+            if cEnabledMap.get(Keys.COMP_IMPORTS) != False:
                 if view.score_selector(iCurrentPoint, self.SCOPE_IMPORT) > 0:
                     aAutoList   = cCompletions.getImports()
                     return aAutoList
 
-            if gcEnabledMap.get(NEWS_KEY) != False:
+            if cEnabledMap.get(Keys.COMP_NEWS) != False:
                 aMatches        = view.find_by_selector(self.SCOPE_NEW)
 
                 for cRegion in aMatches:
@@ -188,7 +164,7 @@ class CompletionsListenerAs3(sublime_plugin.EventListener):
                         aAutoList   = cCompletions.getTypes()
                         return aAutoList
 
-            if gcEnabledMap.get(TYPES_KEY) != False:
+            if cEnabledMap.get(Keys.COMP_TYPES) != False:
                 # this is the scope that we want to target:
                 #   meta.package.actionscript.3 meta.class.actionscript.3 meta.storage.type.actionscript.3
                 # but for some reason the last one isn't showing up in the current scope string...
