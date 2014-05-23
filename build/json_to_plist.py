@@ -18,6 +18,14 @@ cJsonHandle.close()
 sPlistPath	= os.path.splitext(sJsonPath)[0]
 
 # dump json as plist to plist file
-cPlist		= open(sPlistPath, "wb")
-plistlib.dump(cJson, cPlist)
-cPlist.close()
+
+# making an allowance for python version 2.x here...
+iPyVersion	= sys.version_info[0]
+
+if iPyVersion == 3:
+	cPlist		= open(sPlistPath, "wb")
+	plistlib.dump(cJson, cPlist)
+	cPlist.close()
+else:
+	# try version 2
+	plistlib.writePlist(cJson, sPlistPath)
