@@ -38,6 +38,10 @@ def loadSettings():
 def reloadCompletions(cWindow):
     loadSettings()
 
+    if gcSettings.hasErrors():
+        sublime.error_message(gcSettings.getErrors())
+        return
+
     sBuildConfigPath    = pjoin(
         os.path.dirname( cWindow.project_file_name() ),
         gcSettings.get(Keys.BUILD_CONFIG_PATH)
