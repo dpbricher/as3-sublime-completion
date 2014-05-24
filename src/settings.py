@@ -44,7 +44,9 @@ class SettingsManager():
 
         self._checkType(Keys.FLEX_SDK_PATH, str)
         self._checkType(Keys.BUILD_CONFIG_PATH, str)
-        self._checkType(Keys.COMPLETIONS_ENABLED, dict)
+
+        if self.cRaw.get(Keys.COMPLETIONS_ENABLED) is not None:
+            self._checkType(Keys.COMPLETIONS_ENABLED, dict)
 
     def _formatSettings(self):
         self.cFormatted = {}
