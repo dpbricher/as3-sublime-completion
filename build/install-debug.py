@@ -26,8 +26,11 @@ sCopyDestDir		= os.path.join(sSublimePackagesDir, "ActionScript 3-0")
 # convert language json to plist
 subprocess.call(["python", "json_to_plist.py", os.path.join(sPackagePath, "ActionScript 3-0.tmLanguage.json")])
 
+# copy settings file
+subprocess.call(["python", "install-settings.py"])
+
 # copy package files
 if os.path.exists(sSublimePackagesDir):
 	shutil.rmtree(sCopyDestDir, ignore_errors=True)
 
-	shutil.copytree(sPackagePath, sCopyDestDir)
+	shutil.copytree(sPackagePath, sCopyDestDir, ignore=shutil.ignore_patterns("*.json", "*.sublime-settings"))

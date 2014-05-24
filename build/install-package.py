@@ -24,6 +24,10 @@ if not os.path.exists(sSublimePackagesDir):
 if not os.path.exists(sPackagePath):
     subprocess.call(["python", "build-package.py"])
 
+# copy settings file
+subprocess.call(["python", "install-settings.py"])
+
+# copy sublime-package
 if os.path.exists(sSublimePackagesDir):
     sCopyDest   = os.path.join(sSublimePackagesDir, sPackageName)
 

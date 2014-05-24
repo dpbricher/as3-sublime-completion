@@ -1,0 +1,14 @@
+[
+	{
+		"id" : "preferences",
+		"children" : [
+			{
+				"caption" : "-"
+			},
+			{
+				"caption" : "Settings - ActionScript 3.0",
+    			"command" : "open_file", "args": {"file": "${packages}/User/ActionScript 3-0.sublime-settings"}
+			}
+		]
+	}
+]

@@ -18,7 +18,7 @@ subprocess.call(["python", "json_to_plist.py", os.path.join(SRC_DIR, "ActionScri
 
 # open package archive
 cPackage		= zipfile.ZipFile( os.path.join(BIN_DIR, PACKAGE_NAME), "w" )
-aExcludeFiles	= ["ActionScript 3-0.tmLanguage.json"]
+aExcludeFiles	= ["ActionScript 3-0.tmLanguage.json", "ActionScript 3-0.sublime-settings"]
 aExcludeDirs	= ["__pycache__"]
 
 # write files
