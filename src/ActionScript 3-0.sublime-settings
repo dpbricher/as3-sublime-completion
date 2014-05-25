@@ -1,6 +1,7 @@
 {
 	"flex_sdk_path" : "~/Downloads/flex_sdk_4.6",
 	"build_config_path" : "build-config.xml",
+	"project_settings_key" : "actionscript-3.0",
 	"completions_enabled" : {
 		"imports" : true,
 		"news" : true,

@@ -6,5 +6,8 @@
 			"path": "."
 		}
 	],
-	"build-config" : "fake-config-path!"
+	"actionscript-3.0":
+	{
+		"build_config_path" : "test_crap/build-config.xml"
+	}
 }

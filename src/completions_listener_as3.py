@@ -15,14 +15,17 @@ source_dir_as3          = importlib.import_module(PACKAGE_PREFIX + "source_dir_a
 swc                     = importlib.import_module(PACKAGE_PREFIX + "swc")
 settings                = importlib.import_module(PACKAGE_PREFIX + "settings")
 # shorthand for settings keys
-Keys                    = settings.Keys
+Keys                    = settings.GlobalKeys
 
 FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
+
+# map of ProjectSettings for each window; keys are that window's id()
+gcProjSettingsMap       = {}
 
 # map of Completion instances for each window; keys are that window's id()
 gcCompletionsMap        = {}
 
-gcSettings              = settings.SettingsManager()
+gcSettings              = settings.GlobalSettings()
 
 
 def plugin_loaded():
@@ -32,29 +35,57 @@ def checkCompletions(cWindow):
     if gcCompletionsMap.get(cWindow.id()) is None:
         reloadCompletions(cWindow)
 
-def loadSettings():
+def loadGlobalSettings():
     gcSettings.loadSettings()
 
+def loadProjectSettings(cWindow):
+    cProjSettings       = gcProjSettingsMap.get(cWindow.id())
+    
+    if cProjSettings is None:
+        cProjSettings   = settings.ProjectSettings(
+            gcSettings.get(Keys.PROJECT_SETTINGS_KEY)
+        )
+        gcProjSettingsMap[cWindow.id()] = cProjSettings
+
+    cProjSettings.loadSettings(cWindow)
+
 def reloadCompletions(cWindow):
-    loadSettings()
+    loadGlobalSettings()
 
     if gcSettings.hasErrors():
         sublime.error_message(gcSettings.getErrors())
         return
 
+    loadProjectSettings(cWindow)
+
+    # construct list of build config paths to check for here
+    aConfigPaths        = []
+
+    # get config path from global settings
     sBuildConfigPath    = pjoin(
         os.path.dirname( cWindow.project_file_name() ),
         gcSettings.get(Keys.BUILD_CONFIG_PATH)
     )
 
-    if os.path.exists(sBuildConfigPath):
-        # ensure that a completions object for this window exists so that checkCompletions() will not attempt to
-        # reload the completions whilst they are being generated
-        if gcCompletionsMap.get(cWindow.id()) is None:
-            gcCompletionsMap[cWindow.id()]  = completions.Completions()
+    # add project config path
+    aConfigPaths.append(
+        gcProjSettingsMap.get(cWindow.id()).getConfigPath()
+    )
 
-        # start async completions generation
-        threading.Thread(target=loadCompletions, args=(cWindow, sBuildConfigPath)).start()
+    # add global config path
+    aConfigPaths.append(sBuildConfigPath)
+
+    # load completions using first config file that is found to exist
+    for sPath in aConfigPaths:
+        if os.path.exists(sPath):
+            # ensure that a completions object for this window exists so that checkCompletions() will not attempt to
+            # reload the completions whilst they are being generated
+            if gcCompletionsMap.get(cWindow.id()) is None:
+                gcCompletionsMap[cWindow.id()]  = completions.Completions()
+
+            # start async completions generation
+            threading.Thread(target=loadCompletions, args=(cWindow, sPath)).start()
+            break
 
 def loadCompletions(cWindow, sConfigPath):
     global gcCompletionsMap
@@ -160,10 +191,6 @@ class AutoImportAs3Command(sublime_plugin.TextCommand):
                 cPackageRegion.b,
                 "\t" + self.aMatches[index] + "\n"
             )
-
-class LoadSettingsAs3Command(sublime_plugin.WindowCommand):
-    def run(self):
-        loadSettings()
 
 class CreateCompletionsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
