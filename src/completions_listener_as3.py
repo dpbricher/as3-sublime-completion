@@ -158,12 +158,6 @@ def loadCompletions(cWindow, sConfigPath):
     gcCompletionsMap[cWindow.id()]   = completions.Completions(aImports, aTypes)
 
 class AutoImportAs3Command(sublime_plugin.TextCommand):
-    def __init__(self, arg2):
-        super().__init__(arg2)
-
-        self.aMatches   = None
-        self.cEdit      = None
-
     def run(self, edit):
         cWindow         = sublime.active_window()
         cCompletions    = gcCompletionsMap.get(cWindow.id())
@@ -174,21 +168,16 @@ class AutoImportAs3Command(sublime_plugin.TextCommand):
                 self.view.word(caretPos)
             )
 
-            self.aMatches   = [t[0] for t in cCompletions.getImports() if t[0].endswith("." + typeUnderCaret + ";")]
+            aMatches    = [t[0] for t in cCompletions.getImports() if t[0].endswith("." + typeUnderCaret + ";")]
 
-            if len(self.aMatches) > 0:
-                self.cEdit  = edit
-                self.view.show_popup_menu(self.aMatches, self.onImportSelection)
+            if len(aMatches) > 0:
+                self.view.show_popup_menu( aMatches, lambda index: self.onImportSelection(edit, aMatches, index) )
 
-    def onImportSelection(self, index):
-        if index > -1:
+    def onImportSelection(self, cEdit, aMatches, iSelected):
+        if iSelected > -1:
             cPackageRegion  = self.view.find(r"package[^\{]*\{[^\n]*\n", 0)
 
-            self.view.insert(
-                self.cEdit,
-                cPackageRegion.b,
-                "\t" + self.aMatches[index] + "\n"
-            )
+            self.view.insert(cEdit, cPackageRegion.end(), "\t" + aMatches[iSelected] + "\n")
 
 class CreateCompletionsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
