@@ -17,8 +17,6 @@ settings                = importlib.import_module(PACKAGE_PREFIX + "settings")
 # shorthand for settings keys
 Keys                    = settings.GlobalKeys
 
-FLEX_GLOBAL_SWC_DIR     = "frameworks/libs/player"
-
 # map of ProjectSettings for each window; keys are that window's id()
 gcProjSettingsMap       = {}
 
@@ -91,11 +89,7 @@ def loadCompletions(cWindow, sConfigPath):
     global gcCompletionsMap
 
     sFlexSdkPath        = gcSettings.get(Keys.FLEX_SDK_PATH)
-
-    if not os.path.exists(sFlexSdkPath):
-        # clear completions instance for this window so that checkCompletions will attempt to reload them
-        gcCompletionsMap[cWindow.id()]  = None
-        return
+    sFlexGlobalSwcDir   = gcSettings.get(Keys.FLEX_GLOBAL_SWC_DIR)
 
     aSourceDirs         = []
     aSourceSwcs         = []
@@ -111,7 +105,7 @@ def loadCompletions(cWindow, sConfigPath):
     if sFlashVersion == "":
         # set global swc to latest available
         aAllVersions    = os.listdir(
-            pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR)
+            pjoin(sFlexSdkPath, sFlexGlobalSwcDir)
         )
         aAllVersions.sort()
 
@@ -125,7 +119,7 @@ def loadCompletions(cWindow, sConfigPath):
     if cConfigReader == None or cConfigReader.getAppendExternalFlag():
         sGlobalSwcPath      = os.path.realpath(
             os.path.expanduser(
-                pjoin(sFlexSdkPath, FLEX_GLOBAL_SWC_DIR, sFlashVersion, "playerglobal.swc")
+                pjoin(sFlexSdkPath, sFlexGlobalSwcDir, sFlashVersion, "playerglobal.swc")
             )
         )
 

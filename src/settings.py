@@ -41,10 +41,12 @@ class GlobalSettings():
 
         self._checkExists(GlobalKeys.FLEX_SDK_PATH, GlobalKeys.FLEX_SDK_PATH + " missing")
         self._checkExists(GlobalKeys.BUILD_CONFIG_PATH, GlobalKeys.BUILD_CONFIG_PATH + " missing")
+        self._checkExists(GlobalKeys.FLEX_GLOBAL_SWC_DIR, GlobalKeys.FLEX_GLOBAL_SWC_DIR + " missing")
         self._checkExists(GlobalKeys.PROJECT_SETTINGS_KEY, GlobalKeys.PROJECT_SETTINGS_KEY + " missing")
 
         self._checkType(GlobalKeys.FLEX_SDK_PATH, str)
         self._checkType(GlobalKeys.BUILD_CONFIG_PATH, str)
+        self._checkType(GlobalKeys.FLEX_GLOBAL_SWC_DIR, str)
         self._checkType(GlobalKeys.PROJECT_SETTINGS_KEY, str)
 
         if self.cRaw.get(GlobalKeys.COMPLETIONS_ENABLED) is not None:
@@ -53,20 +55,30 @@ class GlobalSettings():
     def _formatSettings(self):
         self.cFormatted = {}
 
-        self.cFormatted[GlobalKeys.FLEX_SDK_PATH]         = os.path.expanduser( self.cRaw.get(GlobalKeys.FLEX_SDK_PATH) )
-        self.cFormatted[GlobalKeys.BUILD_CONFIG_PATH]     = os.path.expanduser( self.cRaw.get(GlobalKeys.BUILD_CONFIG_PATH) )
-        self.cFormatted[GlobalKeys.PROJECT_SETTINGS_KEY]  = self.cRaw.get(GlobalKeys.PROJECT_SETTINGS_KEY)
-        self.cFormatted[GlobalKeys.COMPLETIONS_ENABLED]   = self.cRaw.get(GlobalKeys.COMPLETIONS_ENABLED, {})
+        self.cFormatted[GlobalKeys.FLEX_SDK_PATH]           = os.path.expanduser( self.cRaw.get(GlobalKeys.FLEX_SDK_PATH) )
+        self.cFormatted[GlobalKeys.BUILD_CONFIG_PATH]       = os.path.expanduser( self.cRaw.get(GlobalKeys.BUILD_CONFIG_PATH) )
+        self.cFormatted[GlobalKeys.FLEX_GLOBAL_SWC_DIR]     = self.cRaw.get(GlobalKeys.FLEX_GLOBAL_SWC_DIR)
+        self.cFormatted[GlobalKeys.PROJECT_SETTINGS_KEY]    = self.cRaw.get(GlobalKeys.PROJECT_SETTINGS_KEY)
+        self.cFormatted[GlobalKeys.COMPLETIONS_ENABLED]     = self.cRaw.get(GlobalKeys.COMPLETIONS_ENABLED, {})
+
+        # get flex dir paths
+        cFlexDirsMap    = {
+            GlobalKeys.FLEX_SDK_PATH : self.get(GlobalKeys.FLEX_SDK_PATH),
+            GlobalKeys.FLEX_GLOBAL_SWC_DIR : os.path.join(
+                self.get(GlobalKeys.FLEX_SDK_PATH), self.get(GlobalKeys.FLEX_GLOBAL_SWC_DIR)
+            )
+        }
 
         # check paths exist
         # (can't check build config path, since it is relative for each window)
-        for sKey in [GlobalKeys.FLEX_SDK_PATH]:
-            if os.path.exists( self.get(sKey) ) == False:
+        for sKey, sPath in cFlexDirsMap.items():
+            if os.path.exists(sPath) == False:
                 self.aErrors.append("Path specified by " + sKey + " does not exist or cannot be accessed")
 
         # check path types
-        if os.path.isdir(self.get(GlobalKeys.FLEX_SDK_PATH)) == False:
-            self.aErrors.append("Path specified by " + GlobalKeys.FLEX_SDK_PATH + " is not a directory")
+        for sKey, sPath in cFlexDirsMap.items():
+            if os.path.isdir(sPath) == False:
+                self.aErrors.append("Path specified by " + sKey + " is not a directory")
 
     def _checkExists(self, sKey, sErrorMessage):
         if self.cRaw.get(sKey) is None:
@@ -112,10 +124,10 @@ class ProjectSettings():
 
 
 class GlobalKeys():
-    FLEX_SDK_PATH           = "flex_sdk_path"
     BUILD_CONFIG_PATH       = "build_config_path"
     COMPLETIONS_ENABLED     = "completions_enabled"
-
+    FLEX_SDK_PATH           = "flex_sdk_path"
+    FLEX_GLOBAL_SWC_DIR     = "flex_global_swc_dir"
     PROJECT_SETTINGS_KEY    = "project_settings_key"
 
     # completion keys
