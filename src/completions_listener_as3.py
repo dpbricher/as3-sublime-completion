@@ -175,9 +175,10 @@ class AutoImportAs3Command(sublime_plugin.TextCommand):
 
     def onImportSelection(self, cEdit, aMatches, iSelected):
         if iSelected > -1:
-            cPackageRegion  = self.view.find(r"package[^\{]*\{[^\n]*\n", 0)
+            cPackageRegion      = self.view.find(r"package[^\{]*\{[^\n]*\n", 0)
 
-            self.view.insert(cEdit, cPackageRegion.end(), "\t" + aMatches[iSelected] + "\n")
+            if cPackageRegion.end() != -1: 
+                self.view.insert(cEdit, cPackageRegion.end(), "\t" + aMatches[iSelected] + "\n")
 
 class CreateCompletionsAs3Command(sublime_plugin.WindowCommand):
     def run(self):
