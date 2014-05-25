@@ -101,7 +101,7 @@
         },
         "regex" : {
             "name" : "string.regex.actionscript.3",
-            "begin" : "/",
+            "begin" : "(?<=[;:=\\(]|^|return)\\s*/(?![/\\*]|$)",
             "end" : "/[igmsx]*",
             "patterns" : [
                 {
