@@ -48,6 +48,10 @@ def loadProjectSettings(cWindow):
     cProjSettings.loadSettings(cWindow)
 
 def reloadCompletions(cWindow):
+    # don't attempt to load completions for windows that don't have projects
+    if cWindow.project_file_name() is None:
+        return
+
     loadGlobalSettings()
 
     if gcSettings.hasErrors():
