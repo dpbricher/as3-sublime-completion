@@ -5,6 +5,11 @@ import shutil
 import zipfile
 import subprocess
 
+# cd to dir of this file
+os.chdir(
+    os.path.dirname( os.path.realpath(__file__) )
+)
+
 SRC_DIR			= "../src"
 BIN_DIR			= "../bin"
 PACKAGE_NAME	= "ActionScript 3-0.sublime-package"

@@ -5,6 +5,11 @@ import shutil
 import subprocess
 import sys
 
+# cd to dir of this file
+os.chdir(
+    os.path.dirname( os.path.realpath(__file__) )
+)
+
 sPackageName            = "ActionScript 3-0.sublime-package"
 sPackagePath            = os.path.join("../bin/", sPackageName)
 

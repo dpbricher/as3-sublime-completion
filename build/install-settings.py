@@ -5,6 +5,11 @@ import shutil
 import subprocess
 import sys
 
+# cd to dir of this file
+os.chdir(
+    os.path.dirname( os.path.realpath(__file__) )
+)
+
 sSettingsPath			= "../src/ActionScript 3-0.sublime-settings"
 sSublimePackagesDir		= {
 	"darwin"	: "~/Library/Application Support/Sublime Text 3/Packages",
