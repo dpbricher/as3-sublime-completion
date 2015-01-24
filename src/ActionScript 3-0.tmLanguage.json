@@ -212,19 +212,14 @@
             ]
         },
         "var-declarations" : {
-            "comment" : "using this to catch meta-storage-var-type, cos otherwise that will also catch literal object declarations. also ending this with a ';' since otherwise I'm thinking it will be a ballache to catch, even though it is not *technically* required to end the line.... complaints on a postcard please.",
+            "comment" : "using this to catch meta-storage-var-type, cos otherwise that will also catch literal object declarations.",
             "begin" : "\\b(var|const)\\b",
             "beginCaptures" : {
                 "0" : {
                     "name" : "storage.type.actionscript.3"
                 }
             },
-            "end" : ";|\\bin\\b",
-            "endCaptures" : {
-                "0" : {
-                    "name" : "keyword.operator.actionscript.3"
-                }
-            },
+            "end" : "(?=(;|this|continue|break|case|continue|default|do|while|else|for( each)?|if|return|super|switch|throw|try|catch|finally|while|with|default xml namespace|import|include|use namespace|class|const|function|interface|namespace|package|var|dynamic|final|internal|native|override|private|protected|public|static|as|delete|in|instanceof|is|new|typeof))",
             "patterns" : [
                 {
                     "include" : "#meta-storage-var-type"
