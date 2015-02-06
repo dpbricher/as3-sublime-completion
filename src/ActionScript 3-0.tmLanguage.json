@@ -110,6 +110,17 @@
                 }
             ]
         },
+        "xml" : {
+            "name" : "string.xml.actionscript.3",
+            "begin" : "(?<=[;:=\\(]|^|return)\\s*<",
+            "end" : "(?=[;)}])",
+            "patterns" : [
+                {
+                    "name" : "constant.character.escape.actionscript.3",
+                    "match" : "\\\\."
+                }
+            ]
+        },
         "imports" : {
             "patterns" : [
                 {
@@ -163,10 +174,10 @@
                             "include" : "#constants"
                         },
                         {
-                            "include" : "#operators"
+                            "include" : "#comments"
                         },
                         {
-                            "include" : "#comments"
+                            "include" : "#operators"
                         },
                         {
                             "include" : "#strings"
@@ -183,12 +194,9 @@
             "patterns" : [
                 {
                     "name" : "meta.storage.type.actionscript.3",
-                    "match" : "(:)\\s*(\\w+\\.)*(\\w+)\\b",
+                    "match" : "(?<=:)\\s*(\\w+\\.)*(\\w+)\\b",
                     "captures" : {
-                        "1" : {
-                            "name" : "keyword.operator.actionscript.3"
-                        },
-                        "3" : {
+                        "2" : {
                             "name" : "storage.type.actionscript.3"
                         }
                     }
@@ -200,7 +208,7 @@
                 {
                     "name" : "meta.storage.new.actionscript.3",
                     "match" : "\\b(new)\\s+((\\w+\\.)*)(\\w+)\\b",
-                    "captures" : {
+                     "captures" : {
                         "1" : {
                             "name" : "keyword.other.actionscript.3"
                         },
@@ -248,6 +256,9 @@
                     "include" : "#regex"
                 },
                 {
+                    "include" : "#xml"
+                },
+                {
                     "include" : "#operators"
                 }
             ]
@@ -277,6 +288,9 @@
                 },
                 {
                     "include" : "#regex"
+                },
+                {
+                    "include" : "#xml"
                 },
                 {
                     "include" : "#imports"
@@ -350,6 +364,27 @@
                     }
                 },
                 {
+                    "name" : "meta.interface.header.actionscript.3",
+                    "match" : "\\b(\\w*)\\s*\\b(interface)\\s+(\\w+)(\\s+(extends)\\s+(\\w+\\.)*(\\w+))?",
+                    "captures" : {
+                        "1" : {
+                            "name" : "storage.modifier.actionscript.3"
+                        },
+                        "2" : {
+                            "name" : "storage.type.actionscript.3"
+                        },
+                        "3" : {
+                            "name" : "entity.name.type.class.actionscript.3"
+                        },
+                        "5" : {
+                            "name" : "keyword.other.actionscript.3"
+                        },
+                        "7" : {
+                            "name" : "entity.other.inherited-class.actionscript.3"
+                        }
+                    }
+                },
+                {
                     "name" : "meta.class.actionscript.3",
                     "begin" : "\\{",
                     "end" : "\\}",
@@ -388,6 +423,9 @@
 	"patterns" : [
         {
             "include" : "#packages"
+        },
+        {
+            "include" : "#comments"
         }
 	]
 }
